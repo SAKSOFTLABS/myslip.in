@@ -22,7 +22,15 @@ class Database
             $this->pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
         } catch (PDOException $e) {
             error_log("Database connection error: " . $e->getMessage());
-            die("Database connection failed. Please check configuration.");
+            die("<div style='font-family:sans-serif; max-width:650px; margin:40px auto; padding:25px; background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; color:#9f1239; line-height:1.6;'>"
+                . "<h2 style='margin-top:0; color:#881337;'>⚠️ Database Connection Failed</h2>"
+                . "<p><strong>Error Details:</strong> <code>" . htmlspecialchars($e->getMessage()) . "</code></p>"
+                . "<p><strong>Connecting to Host:</strong> <code>" . htmlspecialchars($config['host']) . "</code></p>"
+                . "<p><strong>Target Database:</strong> <code>" . htmlspecialchars($config['database']) . "</code></p>"
+                . "<p><strong>Username:</strong> <code>" . htmlspecialchars($config['username']) . "</code></p>"
+                . "<hr style='border:0; border-top:1px solid #fecdd3; margin:20px 0;'>"
+                . "<p style='color:#4c0519; font-size:14px; margin-bottom:0;'>💡 <strong>How to fix:</strong> Open your <code>.env</code> file in cPanel File Manager and verify that <code>DB_DATABASE</code>, <code>DB_USERNAME</code>, and <code>DB_PASSWORD</code> match your cPanel MySQL settings.</p>"
+                . "</div>");
         }
     }
 

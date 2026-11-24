@@ -13,8 +13,23 @@ class App
      */
     private static function loadEnvironment(): void
     {
-        $envFile = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . '.env';
-        if (file_exists($envFile)) {
+        $possible = [
+            dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . '.env',
+            __DIR__ . '/../../.env',
+            dirname(__DIR__, 1) . DIRECTORY_SEPARATOR . '.env',
+            ($_SERVER['DOCUMENT_ROOT'] ?? '') . DIRECTORY_SEPARATOR . '.env',
+            dirname($_SERVER['DOCUMENT_ROOT'] ?? '') . DIRECTORY_SEPARATOR . '.env',
+        ];
+
+        $envFile = null;
+        foreach ($possible as $path) {
+            if (!empty($path) && file_exists($path)) {
+                $envFile = $path;
+                break;
+            }
+        }
+
+        if ($envFile && file_exists($envFile)) {
             $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
             foreach ($lines as $line) {
                 $line = trim($line);
@@ -25,7 +40,10 @@ class App
                     [$key, $value] = explode('=', $line, 2);
                     $key = trim($key);
                     $value = trim($value, " \t\n\r\0\x0B\"'");
-                    putenv("{$key}={$value}");
+                    
+                    if (function_exists('putenv')) {
+                        @putenv("{$key}={$value}");
+                    }
                     $_ENV[$key] = $value;
                     $_SERVER[$key] = $value;
                 }

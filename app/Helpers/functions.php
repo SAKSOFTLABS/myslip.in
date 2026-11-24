@@ -7,6 +7,36 @@ use App\Core\Security;
 use App\Core\Session;
 
 /**
+ * Get an environment variable with robust fallbacks
+ */
+function env(string $key, mixed $default = null): mixed
+{
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+        $val = $_ENV[$key];
+    } elseif (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+        $val = $_SERVER[$key];
+    } else {
+        $val = function_exists('getenv') ? getenv($key) : false;
+        if ($val === false || $val === '') {
+            return $default;
+        }
+    }
+
+    $lower = is_string($val) ? strtolower($val) : '';
+    if ($lower === 'true' || $lower === '(true)') {
+        return true;
+    }
+    if ($lower === 'false' || $lower === '(false)') {
+        return false;
+    }
+    if ($lower === 'empty' || $lower === '(empty)' || $lower === 'null') {
+        return '';
+    }
+
+    return $val;
+}
+
+/**
  * Sanitize string for HTML display
  */
 function e(?string $str): string
