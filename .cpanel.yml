@@ -1,0 +1,11 @@
+---
+deployment:
+  tasks:
+    # Note for cPanel:
+    # If your cPanel repository path is cloned outside public_html (e.g. /home/user/repositories/myslip),
+    # replace YOUR_CPANEL_USER with your cPanel username to copy files into your target web folder:
+    # - export DEPLOYPATH=/home/YOUR_CPANEL_USER/public_html/
+    # - /bin/cp -R * $DEPLOYPATH
+    #
+    # If you pointed your cPanel domain directly to the cloned folder's 'public' subfolder,
+    # cPanel automatically maintains the working tree on deploy.
