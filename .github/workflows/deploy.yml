@@ -21,8 +21,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/' }}
-          protocol: ftps
+          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/myslip.in/myslip/' }}
+          protocol: ftp
           dangerous-clean-slate: false
           exclude: |
             **/.git*
