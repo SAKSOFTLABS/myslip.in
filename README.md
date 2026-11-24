@@ -4,6 +4,7 @@
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net/)
 [![Database](https://img.shields.io/badge/MySQL-5.7%2B-orange.svg)](https://www.mysql.com/)
+[![FTP Deploy](https://github.com/SAKSOFTLABS/myslip.in/actions/workflows/deploy.yml/badge.svg)](https://github.com/SAKSOFTLABS/myslip.in/actions/workflows/deploy.yml)
 [![License](https://img.shields.io/badge/License-Proprietary-red.svg)](#license)
 
 **MYSLIP.IN** is an ultra-fast, lightweight, multi-tenant cloud billing and accounting web application crafted specifically for Indian businesses, SMEs, retailers, and wholesalers. It provides full GST compliance, point-of-sale invoicing, purchase tracking, voucher accounting, and comprehensive financial reporting.
