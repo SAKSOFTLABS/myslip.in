@@ -1,0 +1,49 @@
+# ==============================================================================
+# MYSLIP.IN — Git Ignore Rules
+# ==============================================================================
+
+# Environment files
+.env
+.env.backup
+.env.local
+.env.*.local
+
+# Storage: Cache, Logs, Uploads, and Backup Dumps
+/storage/backups/*.json
+/storage/backups/*.sql
+!/storage/backups/.gitkeep
+
+/storage/cache/*
+!/storage/cache/.gitkeep
+
+/storage/logs/*.log
+!/storage/logs/.gitkeep
+
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# IDE & Editor Settings
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# Composer & Dependencies (if used)
+/vendor/
+composer.phar

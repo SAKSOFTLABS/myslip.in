@@ -1,0 +1,136 @@
+/**
+ * MYSLIP.IN — Multi-Format Print Stylesheet (A4, A5, 3-Inch Thermal)
+ */
+
+@media print {
+    /* Hide all application UI */
+    .app-sidebar,
+    .app-navbar,
+    .no-print,
+    .btn,
+    .alert,
+    nav,
+    footer,
+    .toast-container {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Segoe UI', Arial, sans-serif !important;
+        font-size: 12px;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .app-main, .content-body {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    .print-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Standard A4 Page Setup */
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    /* Standard A5 Page Setup */
+    .format-a5 {
+        font-size: 11px !important;
+    }
+
+    /* 3-Inch Thermal Printer Setup (80mm) */
+    .format-thermal {
+        width: 78mm !important;
+        max-width: 78mm !important;
+        font-family: 'Courier New', Courier, monospace !important;
+        font-size: 11px !important;
+        line-height: 1.25 !important;
+        margin: 0 auto !important;
+        padding: 2mm !important;
+    }
+
+    .format-thermal .thermal-divider {
+        border-top: 1px dashed #000 !important;
+        margin: 4px 0 !important;
+    }
+
+    .format-thermal table {
+        width: 100% !important;
+        font-size: 10px !important;
+    }
+
+    .format-thermal table th,
+    .format-thermal table td {
+        padding: 2px 1px !important;
+        border: none !important;
+    }
+
+    table.invoice-table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+
+    table.invoice-table th,
+    table.invoice-table td {
+        border: 1px solid #000000 !important;
+        padding: 6px 8px !important;
+    }
+
+    table.invoice-table th {
+        background-color: #f1f5f9 !important;
+        font-weight: bold !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* Screen Preview Styles */
+.print-preview-wrapper {
+    background-color: #525659;
+    padding: 30px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.invoice-a4-box {
+    background: #ffffff;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.invoice-a5-box {
+    background: #ffffff;
+    width: 148mm;
+    min-height: 210mm;
+    padding: 10mm;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.invoice-thermal-box {
+    background: #ffffff;
+    width: 80mm;
+    min-height: 140mm;
+    padding: 4mm;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    margin: 0 auto;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace;
+}
