@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /myslip.in/public/
+
+    # Note: On a live domain pointing to this folder, no RewriteBase is required.
+    # If you run into subdirectory routing issues on local XAMPP without a VirtualHost, uncomment below:
+    # RewriteBase /myslip.in/public/
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
