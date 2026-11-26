@@ -54,8 +54,8 @@ class CompanyController extends Controller
         $email = trim($this->request->input('email', ''));
         $website = trim($this->request->input('website', ''));
         
-        $gstEnabled = (int)$this->request->input('gst_enabled', 1);
-        $gstin = strtoupper(trim($this->request->input('gstin', '')));
+        $gstEnabled = !empty($this->request->input('gst_enabled')) ? 1 : 0;
+        $gstin = $gstEnabled ? strtoupper(trim($this->request->input('gstin', ''))) : '';
         $pan = strtoupper(trim($this->request->input('pan', '')));
         $cin = trim($this->request->input('cin', ''));
 

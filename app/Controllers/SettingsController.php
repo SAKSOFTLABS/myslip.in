@@ -47,8 +47,8 @@ class SettingsController extends Controller
 
         $companyName = trim($this->request->input('company_name', ''));
         $businessName = trim($this->request->input('business_name', ''));
-        $gstEnabled = (int)$this->request->input('gst_enabled', 0);
-        $gstin = strtoupper(trim($this->request->input('gstin', '')));
+        $gstEnabled = !empty($this->request->input('gst_enabled')) ? 1 : 0;
+        $gstin = $gstEnabled ? strtoupper(trim($this->request->input('gstin', ''))) : '';
         $pan = strtoupper(trim($this->request->input('pan', '')));
         $state = $this->request->input('state', 'Maharashtra');
         $addressLine1 = trim($this->request->input('address_line1', ''));

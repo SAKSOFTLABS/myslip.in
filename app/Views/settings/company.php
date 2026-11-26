@@ -24,6 +24,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="fw-bold text-primary mb-0"><i class="bi bi-shield-check me-1"></i> GST Registration Mode</h6>
                             <div class="form-check form-switch">
+                                <input type="hidden" name="gst_enabled" value="0">
                                 <input class="form-check-input" type="checkbox" name="gst_enabled" value="1" id="gstToggle" <?= $company['gst_enabled'] ? 'checked' : '' ?> onchange="toggleGstFields()">
                                 <label class="form-check-label fw-bold small text-dark" for="gstToggle">GST Billing Enabled</label>
                             </div>

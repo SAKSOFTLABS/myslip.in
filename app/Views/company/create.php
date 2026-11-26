@@ -26,6 +26,7 @@
                 <i class="bi bi-shield-check text-primary me-1"></i> GST Registered Business?
             </label>
             <div class="form-check form-switch fs-5 mb-0">
+                <input type="hidden" name="gst_enabled" value="0">
                 <input class="form-check-input" type="checkbox" name="gst_enabled" value="1" id="gstToggle" checked onchange="toggleGstFields()">
             </div>
         </div>
