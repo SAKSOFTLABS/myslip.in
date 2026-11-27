@@ -283,6 +283,87 @@ body {
     border-radius: 4px;
 }
 
+/* Type & Select Autocomplete Component */
+.type-select-wrapper {
+    position: relative;
+}
+
+.type-select-dropdown {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    background: #ffffff;
+    z-index: 1060;
+}
+
+.type-select-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.type-select-option:last-child {
+    border-bottom: none;
+}
+
+.type-select-option:hover,
+.type-select-option.active {
+    background-color: #f0f7ff;
+}
+
+.type-select-option.active {
+    border-left: 3px solid var(--primary-color);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Item Type & Select in Billing Grid */
+.billing-grid-table td.position-relative {
+    position: relative;
+}
+
+.item-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 8px;
+    width: 380px;
+    max-width: 90vw;
+    max-height: 280px;
+    overflow-y: auto;
+    background: #ffffff;
+    z-index: 1070;
+}
+
+.item-dropdown-option {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.item-dropdown-option:last-child {
+    border-bottom: none;
+}
+
+.item-dropdown-option:hover,
+.item-dropdown-option.active {
+    background-color: #eff6ff;
+}
+
+.item-dropdown-option.active {
+    border-left: 3px solid var(--primary-color);
+}
+
+.card-custom .table-responsive {
+    min-height: 260px;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
     .app-sidebar {

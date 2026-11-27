@@ -1,9 +1,197 @@
 /**
- * MYSLIP.IN — Dynamic Billing Grid & Real-time Tax Calculator
+ * MYSLIP.IN — Dynamic Billing Grid, Type & Select Autocomplete, and Real-time Tax Calculator
  */
 
 let itemRowCount = 0;
+let currentHighlightedItemIndex = {};
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
+ * Type & Select Autocomplete for Customer and Vendor selection
+ */
+function initEntitySearch(config) {
+    const searchInput = document.getElementById(config.inputId);
+    const hiddenInput = document.getElementById(config.hiddenId);
+    const dropdown = document.getElementById(config.dropdownId);
+    const clearBtn = config.clearBtnId ? document.getElementById(config.clearBtnId) : null;
+    const items = config.dataList || [];
+    let highlightedIndex = -1;
+
+    if (!searchInput || !hiddenInput || !dropdown) return;
+
+    function renderOptions(filteredList) {
+        if (!filteredList.length) {
+            dropdown.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-search me-1"></i> No matching ${config.entityType || 'entry'} found</div>`;
+            dropdown.classList.remove('d-none');
+            return;
+        }
+
+        let html = '';
+        filteredList.slice(0, 20).forEach((item, idx) => {
+            const due = parseFloat(item.invoice_outstanding || item.bill_outstanding || 0);
+            const dueLabel = config.entityType === 'vendor' ? 'Payable' : 'Due';
+            html += `
+                <div class="type-select-option ${idx === highlightedIndex ? 'active' : ''}" data-idx="${idx}" data-id="${item.id}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-dark">${escapeHtml(item.name)}</div>
+                            <div class="text-muted small">
+                                ${item.mobile ? '<i class="bi bi-phone me-1"></i>' + escapeHtml(item.mobile) : 'No Phone'}
+                                ${item.state ? ' • ' + escapeHtml(item.state) : ''}
+                                ${item.gstin ? ' • GST: ' + escapeHtml(item.gstin) : ''}
+                            </div>
+                        </div>
+                        <div class="text-end ps-2">
+                            <span class="badge ${due > 0 ? (config.entityType === 'vendor' ? 'bg-warning-subtle text-warning' : 'bg-danger-subtle text-danger') : 'bg-success-subtle text-success'}">
+                                ${dueLabel}: ₹${due.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        dropdown.innerHTML = html;
+        dropdown.classList.remove('d-none');
+
+        dropdown.querySelectorAll('.type-select-option').forEach(el => {
+            el.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                const id = parseInt(this.getAttribute('data-id'));
+                const selItem = items.find(it => parseInt(it.id) === id);
+                if (selItem) {
+                    selectEntity(selItem);
+                }
+            });
+        });
+    }
+
+    function selectEntity(item) {
+        hiddenInput.value = item.id;
+        searchInput.value = item.name + (item.mobile ? ` (${item.mobile})` : '');
+        searchInput.classList.remove('is-invalid');
+        if (clearBtn) clearBtn.classList.remove('d-none');
+        dropdown.classList.add('d-none');
+        highlightedIndex = -1;
+
+        if (typeof config.onSelect === 'function') {
+            config.onSelect(item);
+        }
+    }
+
+    function clearEntity() {
+        hiddenInput.value = '';
+        searchInput.value = '';
+        if (clearBtn) clearBtn.classList.add('d-none');
+        dropdown.classList.add('d-none');
+        highlightedIndex = -1;
+
+        if (typeof config.onClear === 'function') {
+            config.onClear();
+        }
+        searchInput.focus();
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearEntity();
+        });
+    }
+
+    searchInput.addEventListener('focus', function() {
+        const query = this.value.trim().toLowerCase();
+        const filtered = query ? items.filter(it => 
+            (it.name && it.name.toLowerCase().includes(query)) ||
+            (it.mobile && it.mobile.includes(query)) ||
+            (it.gstin && it.gstin.toLowerCase().includes(query))
+        ) : items;
+        highlightedIndex = -1;
+        renderOptions(filtered);
+    });
+
+    searchInput.addEventListener('input', function() {
+        if (hiddenInput.value) {
+            hiddenInput.value = '';
+            if (typeof config.onClear === 'function') {
+                config.onClear();
+            }
+        }
+        if (clearBtn) {
+            clearBtn.classList.toggle('d-none', !this.value.trim());
+        }
+
+        const query = this.value.trim().toLowerCase();
+        const filtered = query ? items.filter(it => 
+            (it.name && it.name.toLowerCase().includes(query)) ||
+            (it.mobile && it.mobile.includes(query)) ||
+            (it.gstin && it.gstin.toLowerCase().includes(query))
+        ) : items;
+        highlightedIndex = -1;
+        renderOptions(filtered);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        const options = dropdown.querySelectorAll('.type-select-option');
+        if (dropdown.classList.contains('d-none') || !options.length) {
+            if (e.key === 'ArrowDown') {
+                searchInput.dispatchEvent(new Event('focus'));
+            }
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            highlightedIndex = Math.min(highlightedIndex + 1, options.length - 1);
+            updateHighlight(options);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedIndex = Math.max(highlightedIndex - 1, 0);
+            updateHighlight(options);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (highlightedIndex >= 0 && options[highlightedIndex]) {
+                const id = parseInt(options[highlightedIndex].getAttribute('data-id'));
+                const selItem = items.find(it => parseInt(it.id) === id);
+                if (selItem) selectEntity(selItem);
+            } else if (options.length === 1) {
+                const id = parseInt(options[0].getAttribute('data-id'));
+                const selItem = items.find(it => parseInt(it.id) === id);
+                if (selItem) selectEntity(selItem);
+            }
+        } else if (e.key === 'Escape') {
+            dropdown.classList.add('d-none');
+        }
+    });
+
+    function updateHighlight(options) {
+        options.forEach((el, idx) => {
+            el.classList.toggle('active', idx === highlightedIndex);
+            if (idx === highlightedIndex) {
+                el.scrollIntoView({ block: 'nearest' });
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('d-none');
+        }
+    });
+}
+
+/**
+ * Add a dynamic item billing row with Type & Select
+ */
 function addBillingRow(itemData = null) {
     itemRowCount++;
     const tbody = document.getElementById('billingItemsBody');
@@ -14,28 +202,27 @@ function addBillingRow(itemData = null) {
     row.className = 'billing-row align-middle';
 
     const isGst = window.GST_ENABLED === true;
-    const isInterstate = window.IS_INTERSTATE === true;
 
     row.innerHTML = `
         <td class="text-center row-index">${tbody.children.length + 1}</td>
-        <td>
-            <select name="items[${itemRowCount}][item_id]" class="form-select form-select-sm item-select" onchange="onItemSelectChange(this, ${itemRowCount})">
-                <option value="">-- Select or Scan Item --</option>
-                ${window.AVAILABLE_ITEMS ? window.AVAILABLE_ITEMS.map(i => `
-                    <option value="${i.id}" 
-                            data-code="${i.code || ''}" 
-                            data-barcode="${i.barcode || ''}" 
-                            data-hsn="${i.hsn_sac || ''}" 
-                            data-unit="${i.unit_name || 'PCS'}" 
-                            data-rate="${window.IS_PURCHASE ? i.purchase_rate : i.selling_rate}" 
-                            data-gst="${i.gst_rate || 0}" 
-                            data-stock="${i.current_stock || 0}">
-                        ${i.name} (Stock: ${i.current_stock || 0})
-                    </option>
-                `).join('') : ''}
-            </select>
-            <input type="hidden" name="items[${itemRowCount}][item_name]" class="item-name-input">
-            <input type="hidden" name="items[${itemRowCount}][barcode]" class="item-barcode-input">
+        <td class="position-relative item-cell">
+            <input type="hidden" name="items[${itemRowCount}][item_id]" class="item-select item-id-input" value="">
+            <input type="hidden" name="items[${itemRowCount}][item_name]" class="item-name-input" value="">
+            <input type="hidden" name="items[${itemRowCount}][barcode]" class="item-barcode-input" value="">
+
+            <div class="input-group input-group-sm">
+                <input type="text" 
+                       class="form-control form-control-sm item-search-input" 
+                       placeholder="Type item name, code, barcode..." 
+                       autocomplete="off" 
+                       onfocus="openItemDropdown(${itemRowCount})" 
+                       oninput="filterItemDropdown(this, ${itemRowCount})" 
+                       onkeydown="navigateItemDropdown(event, ${itemRowCount})">
+                <button type="button" class="btn btn-outline-secondary btn-clear-row-item p-0 px-2 d-none" onclick="clearItemRowSelection(${itemRowCount})" title="Clear item">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="item-dropdown-menu shadow-lg rounded-2 border d-none" id="itemDropdown_${itemRowCount}"></div>
         </td>
         ${isGst ? `
         <td>
@@ -90,37 +277,250 @@ function addBillingRow(itemData = null) {
     tbody.appendChild(row);
 
     if (itemData) {
-        populateRowWithItem(row, itemData);
+        populateRowWithItem(itemRowCount, itemData);
     }
 
     calculateBillingTotals();
 }
 
-function onItemSelectChange(selectElem, rowId) {
-    const option = selectElem.options[selectElem.selectedIndex];
+function closeAllItemDropdowns() {
+    document.querySelectorAll('.item-dropdown-menu').forEach(el => el.classList.add('d-none'));
+}
+
+function openItemDropdown(rowId) {
+    closeAllItemDropdowns();
     const row = document.getElementById(`row_${rowId}`);
-    if (!option || !option.value || !row) return;
+    if (!row) return;
 
-    row.querySelector('.item-name-input').value = option.text.split(' (Stock:')[0].trim();
-    row.querySelector('.item-barcode-input').value = option.getAttribute('data-barcode') || '';
-    
+    const input = row.querySelector('.item-search-input');
+    filterItemDropdown(input, rowId);
+}
+
+function filterItemDropdown(input, rowId) {
+    const dropdown = document.getElementById(`itemDropdown_${rowId}`);
+    const row = document.getElementById(`row_${rowId}`);
+    if (!dropdown || !row) return;
+
+    const idInput = row.querySelector('.item-id-input');
+    const nameInput = row.querySelector('.item-name-input');
+    const clearBtn = row.querySelector('.btn-clear-row-item');
+
+    if (idInput && idInput.value && nameInput && input.value !== nameInput.value) {
+        idInput.value = '';
+    }
+    if (clearBtn) {
+        clearBtn.classList.toggle('d-none', !input.value.trim());
+    }
+
+    const query = input.value.trim().toLowerCase();
+    const items = window.AVAILABLE_ITEMS || [];
+    const isPurchase = window.IS_PURCHASE === true;
+
+    const filtered = query ? items.filter(it => 
+        (it.name && it.name.toLowerCase().includes(query)) ||
+        (it.code && it.code.toLowerCase().includes(query)) ||
+        (it.barcode && it.barcode.toLowerCase().includes(query)) ||
+        (it.hsn_sac && it.hsn_sac.toLowerCase().includes(query))
+    ) : items;
+
+    currentHighlightedItemIndex[rowId] = -1;
+
+    if (!filtered.length) {
+        dropdown.innerHTML = `<div class="p-3 text-center text-muted small"><i class="bi bi-search me-1"></i> No items found matching "${escapeHtml(query)}"</div>`;
+        dropdown.classList.remove('d-none');
+        return;
+    }
+
+    let html = '';
+    filtered.slice(0, 25).forEach((it, idx) => {
+        const rate = parseFloat(isPurchase ? (it.purchase_rate || 0) : (it.selling_rate || 0));
+        const stock = parseFloat(it.current_stock || 0);
+        html += `
+            <div class="item-dropdown-option p-2 border-bottom d-flex justify-content-between align-items-center" 
+                 data-item-id="${it.id}" 
+                 data-idx="${idx}"
+                 onmousedown="selectRowItem(${rowId}, ${it.id})">
+                <div class="flex-grow-1 me-2">
+                    <div class="fw-bold text-dark item-name">${escapeHtml(it.name)}</div>
+                    <div class="text-muted small">
+                        ${it.code ? '<span class="me-2">Code: ' + escapeHtml(it.code) + '</span>' : ''}
+                        ${it.barcode ? '<span class="me-2"><i class="bi bi-upc-scan"></i> ' + escapeHtml(it.barcode) + '</span>' : ''}
+                        ${it.hsn_sac ? '<span class="me-2">HSN: ' + escapeHtml(it.hsn_sac) + '</span>' : ''}
+                        <span>GST: ${it.gst_rate || 0}%</span>
+                    </div>
+                </div>
+                <div class="text-end flex-shrink-0">
+                    <div class="fw-bold text-primary">₹${rate.toFixed(2)}</div>
+                    <span class="badge ${stock > 0 ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-muted'}">
+                        Stock: ${stock} ${escapeHtml(it.unit_name || 'PCS')}
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+
+    dropdown.innerHTML = html;
+    dropdown.classList.remove('d-none');
+}
+
+function navigateItemDropdown(event, rowId) {
+    const dropdown = document.getElementById(`itemDropdown_${rowId}`);
+    if (!dropdown || dropdown.classList.contains('d-none')) {
+        if (event.key === 'ArrowDown') {
+            openItemDropdown(rowId);
+        }
+        return;
+    }
+
+    const options = dropdown.querySelectorAll('.item-dropdown-option');
+    if (!options.length) return;
+
+    let idx = currentHighlightedItemIndex[rowId] ?? -1;
+
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        idx = Math.min(idx + 1, options.length - 1);
+        currentHighlightedItemIndex[rowId] = idx;
+        updateItemOptionHighlight(dropdown, idx);
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        idx = Math.max(idx - 1, 0);
+        currentHighlightedItemIndex[rowId] = idx;
+        updateItemOptionHighlight(dropdown, idx);
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (idx >= 0 && options[idx]) {
+            const itemId = parseInt(options[idx].getAttribute('data-item-id'));
+            selectRowItem(rowId, itemId);
+        } else if (options.length === 1) {
+            const itemId = parseInt(options[0].getAttribute('data-item-id'));
+            selectRowItem(rowId, itemId);
+        }
+    } else if (event.key === 'Escape') {
+        dropdown.classList.add('d-none');
+    }
+}
+
+function updateItemOptionHighlight(dropdown, activeIdx) {
+    const options = dropdown.querySelectorAll('.item-dropdown-option');
+    options.forEach((el, i) => {
+        el.classList.toggle('active', i === activeIdx);
+        if (i === activeIdx) {
+            el.scrollIntoView({ block: 'nearest' });
+        }
+    });
+}
+
+function selectRowItem(rowId, itemId) {
+    const row = document.getElementById(`row_${rowId}`);
+    if (!row) return;
+
+    const items = window.AVAILABLE_ITEMS || [];
+    const item = items.find(it => parseInt(it.id) === parseInt(itemId));
+    if (!item) return;
+
+    const isPurchase = window.IS_PURCHASE === true;
+    const rate = parseFloat(isPurchase ? (item.purchase_rate || 0) : (item.selling_rate || 0));
+
+    row.querySelector('.item-id-input').value = item.id;
+    row.querySelector('.item-name-input').value = item.name;
+    row.querySelector('.item-barcode-input').value = item.barcode || '';
+
+    const searchInput = row.querySelector('.item-search-input');
+    searchInput.value = item.name;
+    searchInput.classList.remove('is-invalid');
+
+    const clearBtn = row.querySelector('.btn-clear-row-item');
+    if (clearBtn) clearBtn.classList.remove('d-none');
+
     const hsnInput = row.querySelector('.item-hsn');
-    if (hsnInput) hsnInput.value = option.getAttribute('data-hsn') || '';
+    if (hsnInput) hsnInput.value = item.hsn_sac || '';
 
-    const unit = option.getAttribute('data-unit') || 'PCS';
-    row.querySelector('.item-unit-label').innerText = unit;
-    row.querySelector('.item-unit-input').value = unit;
+    const unit = item.unit_name || 'PCS';
+    const unitLabel = row.querySelector('.item-unit-label');
+    const unitInput = row.querySelector('.item-unit-input');
+    if (unitLabel) unitLabel.innerText = unit;
+    if (unitInput) unitInput.value = unit;
 
-    const rate = parseFloat(option.getAttribute('data-rate') || 0);
-    row.querySelector('.item-rate').value = rate.toFixed(2);
+    const rateInput = row.querySelector('.item-rate');
+    if (rateInput) rateInput.value = rate.toFixed(2);
 
     const gstSelect = row.querySelector('.item-gst-rate');
     if (gstSelect) {
-        const gst = parseFloat(option.getAttribute('data-gst') || 0);
-        gstSelect.value = gst;
+        gstSelect.value = parseFloat(item.gst_rate || 0);
     }
 
+    const dropdown = document.getElementById(`itemDropdown_${rowId}`);
+    if (dropdown) dropdown.classList.add('d-none');
+
     calculateBillingTotals();
+
+    // Auto-advance focus to Quantity field for rapid billing
+    const qtyInput = row.querySelector('.item-qty');
+    if (qtyInput) {
+        setTimeout(() => {
+            qtyInput.focus();
+            qtyInput.select();
+        }, 50);
+    }
+}
+
+function clearItemRowSelection(rowId) {
+    const row = document.getElementById(`row_${rowId}`);
+    if (!row) return;
+
+    row.querySelector('.item-id-input').value = '';
+    row.querySelector('.item-name-input').value = '';
+    row.querySelector('.item-barcode-input').value = '';
+
+    const searchInput = row.querySelector('.item-search-input');
+    searchInput.value = '';
+
+    const clearBtn = row.querySelector('.btn-clear-row-item');
+    if (clearBtn) clearBtn.classList.add('d-none');
+
+    const hsnInput = row.querySelector('.item-hsn');
+    if (hsnInput) hsnInput.value = '';
+
+    const rateInput = row.querySelector('.item-rate');
+    if (rateInput) rateInput.value = '0.00';
+
+    const discInput = row.querySelector('.item-disc-pct');
+    if (discInput) discInput.value = '0';
+
+    const dropdown = document.getElementById(`itemDropdown_${rowId}`);
+    if (dropdown) dropdown.classList.add('d-none');
+
+    calculateBillingTotals();
+    searchInput.focus();
+}
+
+function populateRowWithItem(rowId, itemData) {
+    if (!itemData) return;
+    if (itemData.id) {
+        selectRowItem(rowId, itemData.id);
+    }
+    const row = document.getElementById(`row_${rowId}`);
+    if (!row) return;
+
+    if (itemData.quantity !== undefined) {
+        row.querySelector('.item-qty').value = itemData.quantity;
+    }
+    if (itemData.rate !== undefined) {
+        row.querySelector('.item-rate').value = itemData.rate;
+    }
+    if (itemData.discount_percent !== undefined) {
+        row.querySelector('.item-disc-pct').value = itemData.discount_percent;
+    }
+    calculateBillingTotals();
+}
+
+function onItemSelectChange(selectElem, rowId) {
+    // Kept for backward compatibility if any static view uses native select
+    const option = selectElem.options[selectElem.selectedIndex];
+    if (option && option.value) {
+        selectRowItem(rowId, option.value);
+    }
 }
 
 function removeBillingRow(rowId) {
@@ -187,7 +587,6 @@ function calculateBillingTotals() {
 
         const lineTotal = lineTaxable + lineTaxAmt;
 
-        // Update row DOM
         if (r.querySelector('.item-disc-amt')) r.querySelector('.item-disc-amt').value = lineDisc.toFixed(2);
         if (r.querySelector('.item-taxable')) r.querySelector('.item-taxable').value = lineTaxable.toFixed(2);
         if (r.querySelector('.item-cgst-rate')) r.querySelector('.item-cgst-rate').value = lineCgstRate.toFixed(2);
@@ -247,7 +646,6 @@ function calculateBillingTotals() {
     const paidInput = document.getElementById('inputPaidAmount');
     let paidAmt = parseFloat(paidInput?.value || 0);
     
-    // Default auto-fill paid amount if cash or UPI selected
     const paymentMode = document.getElementById('paymentModeSelect')?.value;
     if ((paymentMode === 'cash' || paymentMode === 'upi' || paymentMode === 'bank') && paidInput && paidInput.dataset.manual !== 'true') {
         paidAmt = grandTotal;
@@ -274,7 +672,6 @@ function handleBarcodeScan(barcode) {
     barcode = barcode.trim();
     if (!barcode) return;
 
-    // Check if barcode already exists in grid
     const existingRows = document.querySelectorAll('#billingItemsBody tr');
     for (let r of existingRows) {
         const rowBarcode = r.querySelector('.item-barcode-input')?.value;
@@ -289,15 +686,13 @@ function handleBarcodeScan(barcode) {
         }
     }
 
-    // Match barcode in available items catalog
     if (window.AVAILABLE_ITEMS) {
         const match = window.AVAILABLE_ITEMS.find(i => i.barcode && i.barcode.toLowerCase() === barcode.toLowerCase());
         if (match) {
             addBillingRow();
             const newRow = document.querySelector('#billingItemsBody tr:last-child');
-            const select = newRow.querySelector('.item-select');
-            select.value = match.id;
-            onItemSelectChange(select, newRow.id.replace('row_', ''));
+            const rowId = parseInt(newRow.id.replace('row_', ''));
+            selectRowItem(rowId, match.id);
             showToast(`Added: ${match.name}`, 'success');
             return;
         }
@@ -305,3 +700,10 @@ function handleBarcodeScan(barcode) {
 
     showToast(`No item found matching barcode [${barcode}]`, 'warning');
 }
+
+// Global click to close item dropdowns
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.item-cell')) {
+        closeAllItemDropdowns();
+    }
+});

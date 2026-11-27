@@ -21,21 +21,26 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
     <div class="card-custom mb-3">
         <div class="card-body p-3">
             <div class="row g-3">
+                <!-- Supplier / Vendor (Type & Select) -->
                 <div class="col-md-4">
                     <label class="form-label fw-semibold small">Supplier / Vendor <span class="text-danger">*</span></label>
-                    <select name="vendor_id" id="vendorSelect" class="form-select form-select-sm" onchange="onVendorChange(this)" required autofocus>
-                        <option value="">-- Choose Vendor --</option>
-                        <?php foreach ($vendors as $v): ?>
-                            <option value="<?= $v['id'] ?>" 
-                                    data-state="<?= e($v['state']) ?>" 
-                                    data-state-code="<?= e($v['state_code']) ?>" 
-                                    data-gstin="<?= e($v['gstin']) ?>" 
-                                    data-mobile="<?= e($v['mobile']) ?>" 
-                                    data-outstanding="<?= (float)$v['bill_outstanding'] ?>">
-                                <?= e($v['name']) ?> <?= $v['mobile'] ? "({$v['mobile']})" : '' ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="type-select-wrapper position-relative">
+                        <input type="hidden" name="vendor_id" id="vendorSelect" value="" required>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" 
+                                   id="vendorSearchInput" 
+                                   class="form-control form-control-sm type-select-input" 
+                                   placeholder="Type vendor name, phone, or GSTIN..." 
+                                   autocomplete="off" 
+                                   autofocus 
+                                   required>
+                            <button type="button" class="btn btn-outline-secondary btn-clear-selection d-none" id="btnClearVendor" title="Clear vendor">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="type-select-dropdown shadow-lg rounded-2 border d-none" id="vendorDropdownList"></div>
+                    </div>
                     <div id="vendorInfoBadge" class="small mt-1 text-muted"></div>
                 </div>
 
@@ -194,24 +199,18 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
 
 <script src="<?= asset('js/billing.js') ?>"></script>
 <script>
+window.AVAILABLE_VENDORS = <?= json_encode($vendors) ?>;
 window.AVAILABLE_ITEMS = <?= json_encode($items) ?>;
 window.COMPANY_STATE_CODE = "<?= e($companyStateCode) ?>";
 window.IS_INTERSTATE = false;
 window.IS_PURCHASE = true; // Use purchase_rate when populating rows
 
-function onVendorChange(select) {
-    const opt = select.options[select.selectedIndex];
-    if (!opt || !opt.value) {
-        document.getElementById('vendorInfoBadge').innerHTML = '';
-        window.IS_INTERSTATE = false;
-        calculateBillingTotals();
-        return;
-    }
-
-    const state = opt.getAttribute('data-state') || '';
-    const stateCode = opt.getAttribute('data-state-code') || '27';
-    const gstin = opt.getAttribute('data-gstin') || '';
-    const outstanding = parseFloat(opt.getAttribute('data-outstanding') || 0);
+function onVendorSelected(vendor) {
+    if (!vendor) return;
+    const state = vendor.state || '';
+    const stateCode = vendor.state_code || '27';
+    const gstin = vendor.gstin || '';
+    const outstanding = parseFloat(vendor.bill_outstanding || 0);
 
     window.IS_INTERSTATE = (stateCode !== window.COMPANY_STATE_CODE);
 
@@ -228,9 +227,24 @@ function onVendorChange(select) {
     document.getElementById('vendorInfoBadge').innerHTML = `
         <span class="me-2"><i class="bi bi-geo-alt"></i> ${state} (${stateCode})</span>
         <span class="me-2"><i class="bi bi-shield-check"></i> ${gstin || 'Unregistered'}</span>
-        <span class="text-warning fw-bold">Payable: ₹${outstanding.toLocaleString('en-IN')}</span>
+        <span class="text-warning fw-bold">Payable: ₹${outstanding.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
     `;
 
+    calculateBillingTotals();
+}
+
+function onVendorCleared() {
+    document.getElementById('vendorInfoBadge').innerHTML = '';
+    window.IS_INTERSTATE = false;
+    const isGst = window.GST_ENABLED;
+    if (isGst) {
+        const cgstEl = document.getElementById('cgstRow');
+        const sgstEl = document.getElementById('sgstRow');
+        const igstEl = document.getElementById('igstRow');
+        if (cgstEl) cgstEl.style.display = 'table-row';
+        if (sgstEl) sgstEl.style.display = 'table-row';
+        if (igstEl) igstEl.style.display = 'none';
+    }
     calculateBillingTotals();
 }
 
@@ -239,8 +253,9 @@ function submitPurchaseBill() {
     const vendorSelect = document.getElementById('vendorSelect');
 
     if (!vendorSelect || !vendorSelect.value) {
-        alert('Please select a supplier / vendor.');
-        if (vendorSelect) vendorSelect.focus();
+        alert('Please type and select a supplier / vendor from the suggestions.');
+        const searchInput = document.getElementById('vendorSearchInput');
+        if (searchInput) searchInput.focus();
         return;
     }
 
@@ -270,6 +285,17 @@ function submitPurchaseBill() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    initEntitySearch({
+        inputId: 'vendorSearchInput',
+        hiddenId: 'vendorSelect',
+        dropdownId: 'vendorDropdownList',
+        clearBtnId: 'btnClearVendor',
+        dataList: window.AVAILABLE_VENDORS,
+        entityType: 'vendor',
+        onSelect: onVendorSelected,
+        onClear: onVendorCleared
+    });
+
     addBillingRow();
 });
 </script>

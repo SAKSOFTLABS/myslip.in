@@ -23,22 +23,26 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
     <div class="card-custom mb-3">
         <div class="card-body p-3">
             <div class="row g-3">
-                <!-- Customer Selection -->
+                <!-- Customer Selection (Type & Select) -->
                 <div class="col-md-4">
                     <label class="form-label fw-semibold small">Customer <span class="text-danger">*</span></label>
-                    <select name="customer_id" id="customerSelect" class="form-select form-select-sm" onchange="onCustomerChange(this)" required autofocus>
-                        <option value="">-- Choose Customer --</option>
-                        <?php foreach ($customers as $c): ?>
-                            <option value="<?= $c['id'] ?>" 
-                                    data-state="<?= e($c['state']) ?>" 
-                                    data-state-code="<?= e($c['state_code']) ?>" 
-                                    data-gstin="<?= e($c['gstin']) ?>" 
-                                    data-mobile="<?= e($c['mobile']) ?>" 
-                                    data-outstanding="<?= (float)$c['invoice_outstanding'] ?>">
-                                <?= e($c['name']) ?> <?= $c['mobile'] ? "({$c['mobile']})" : '' ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="type-select-wrapper position-relative">
+                        <input type="hidden" name="customer_id" id="customerSelect" value="" required>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" 
+                                   id="customerSearchInput" 
+                                   class="form-control form-control-sm type-select-input" 
+                                   placeholder="Type customer name, phone, or GSTIN..." 
+                                   autocomplete="off" 
+                                   autofocus 
+                                   required>
+                            <button type="button" class="btn btn-outline-secondary btn-clear-selection d-none" id="btnClearCustomer" title="Clear customer">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="type-select-dropdown shadow-lg rounded-2 border d-none" id="customerDropdownList"></div>
+                    </div>
                     <div id="customerInfoBadge" class="small mt-1 text-muted"></div>
                 </div>
 
@@ -221,24 +225,18 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
 
 <script src="<?= asset('js/billing.js') ?>"></script>
 <script>
+window.AVAILABLE_CUSTOMERS = <?= json_encode($customers) ?>;
 window.AVAILABLE_ITEMS = <?= json_encode($items) ?>;
 window.COMPANY_STATE_CODE = "<?= e($companyStateCode) ?>";
 window.IS_INTERSTATE = false;
 window.IS_PURCHASE = false;
 
-function onCustomerChange(select) {
-    const opt = select.options[select.selectedIndex];
-    if (!opt || !opt.value) {
-        document.getElementById('customerInfoBadge').innerHTML = '';
-        window.IS_INTERSTATE = false;
-        calculateBillingTotals();
-        return;
-    }
-
-    const state = opt.getAttribute('data-state') || '';
-    const stateCode = opt.getAttribute('data-state-code') || '27';
-    const gstin = opt.getAttribute('data-gstin') || '';
-    const outstanding = parseFloat(opt.getAttribute('data-outstanding') || 0);
+function onCustomerSelected(customer) {
+    if (!customer) return;
+    const state = customer.state || '';
+    const stateCode = customer.state_code || '27';
+    const gstin = customer.gstin || '';
+    const outstanding = parseFloat(customer.invoice_outstanding || 0);
 
     window.IS_INTERSTATE = (stateCode !== window.COMPANY_STATE_CODE);
 
@@ -256,9 +254,24 @@ function onCustomerChange(select) {
     document.getElementById('customerInfoBadge').innerHTML = `
         <span class="me-2"><i class="bi bi-geo-alt"></i> ${state} (${stateCode})</span>
         <span class="me-2"><i class="bi bi-shield-check"></i> ${gstin || 'Unregistered'}</span>
-        <span class="text-${outstanding > 0 ? 'danger' : 'success'} fw-bold">Due: ₹${outstanding.toLocaleString('en-IN')}</span>
+        <span class="text-${outstanding > 0 ? 'danger' : 'success'} fw-bold">Due: ₹${outstanding.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
     `;
 
+    calculateBillingTotals();
+}
+
+function onCustomerCleared() {
+    document.getElementById('customerInfoBadge').innerHTML = '';
+    window.IS_INTERSTATE = false;
+    const isGst = window.GST_ENABLED;
+    if (isGst) {
+        const cgstEl = document.getElementById('cgstRow');
+        const sgstEl = document.getElementById('sgstRow');
+        const igstEl = document.getElementById('igstRow');
+        if (cgstEl) cgstEl.style.display = 'table-row';
+        if (sgstEl) sgstEl.style.display = 'table-row';
+        if (igstEl) igstEl.style.display = 'none';
+    }
     calculateBillingTotals();
 }
 
@@ -267,8 +280,9 @@ function submitSalesInvoice(actionType) {
     const customerSelect = document.getElementById('customerSelect');
 
     if (!customerSelect || !customerSelect.value) {
-        alert('Please select a customer.');
-        if (customerSelect) customerSelect.focus();
+        alert('Please type and select a customer from the suggestions.');
+        const searchInput = document.getElementById('customerSearchInput');
+        if (searchInput) searchInput.focus();
         return;
     }
 
@@ -312,8 +326,19 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Initialize with 1 clean row on load
+// Initialize customer type & select and 1 clean row on load
 document.addEventListener('DOMContentLoaded', function() {
+    initEntitySearch({
+        inputId: 'customerSearchInput',
+        hiddenId: 'customerSelect',
+        dropdownId: 'customerDropdownList',
+        clearBtnId: 'btnClearCustomer',
+        dataList: window.AVAILABLE_CUSTOMERS,
+        entityType: 'customer',
+        onSelect: onCustomerSelected,
+        onClear: onCustomerCleared
+    });
+
     addBillingRow();
 });
 </script>
