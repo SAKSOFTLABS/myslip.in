@@ -381,7 +381,7 @@ if (quickVendorForm) {
 
         try {
             const formData = new FormData(this);
-            const response = await fetch('/vendors/quick-store', {
+            const response = await fetch('<?= url('/vendors/quick-store') ?>', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -389,7 +389,17 @@ if (quickVendorForm) {
                 }
             });
 
-            const res = await response.json();
+            const text = await response.text();
+            let res;
+            try {
+                res = JSON.parse(text);
+            } catch (jsonErr) {
+                console.error('Non-JSON response:', text);
+                alertEl.textContent = 'Server response error: ' + (text.substring(0, 100) || 'Unknown response');
+                alertEl.classList.remove('d-none');
+                return;
+            }
+
             if (!res.success) {
                 alertEl.textContent = res.error || res.message || 'Failed to create vendor.';
                 alertEl.classList.remove('d-none');

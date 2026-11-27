@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Session;
+use App\Core\Security;
 use App\Core\Database;
 use App\Models\Customer;
 use App\Models\AuditLog;
