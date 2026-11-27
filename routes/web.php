@@ -16,6 +16,7 @@ Router::post('/register', 'AuthController@register');
 Router::get('/logout', 'AuthController@logout');
 Router::get('/forgot-password', 'AuthController@showForgotPassword');
 Router::post('/forgot-password', 'AuthController@forgotPassword');
+Router::get('/invoices/view/{id}', 'InvoicePrintController@publicView');
 
 // -------------------------------------------------------------
 // 2. TENANT ONBOARDING & COMPANY SWITCHING (Requires Login)

@@ -69,4 +69,21 @@ class Sale extends Model
         $sale['items'] = $items;
         return $sale;
     }
+
+    public function getSaleWithItemsPublic(int $id): ?array
+    {
+        $sale = $this->db->fetchOne("SELECT * FROM `{$this->table}` WHERE `id` = :id AND `status` = 'active'", ['id' => $id]);
+        if (!$sale) return null;
+
+        $items = $this->db->fetchAll(
+            "SELECT si.*, i.code as item_code 
+             FROM `sales_items` si 
+             LEFT JOIN `items` i ON si.item_id = i.id 
+             WHERE si.sale_id = :sale_id AND si.company_id = :comp_id",
+            ['sale_id' => $id, 'comp_id' => $sale['company_id']]
+        );
+
+        $sale['items'] = $items;
+        return $sale;
+    }
 }
