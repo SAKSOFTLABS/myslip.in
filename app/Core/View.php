@@ -51,17 +51,32 @@ class View
     }
 
     /**
-     * Include a reusable partial snippet
+     * Include a reusable partial snippet or subview
      */
     public static function partial(string $partialPath, array $data = []): void
     {
         extract($data);
         $config = require __DIR__ . '/../Config/app.php';
         $flashes = Session::getFlashes();
-        $partialFile = __DIR__ . '/../Views/partials/' . str_replace('.', '/', $partialPath) . '.php';
+        $isLoggedIn = Session::isAuthenticated();
+        $companyId = Session::getCompanyId();
+        $isSuperAdmin = Session::isSuperAdmin();
+        $gstEnabled = Session::get('gst_enabled', true);
+
+        $path = str_replace('.', '/', $partialPath);
         
+        // 1. Check in partials directory (e.g. sidebar, navbar, alerts, footer)
+        $partialFile = __DIR__ . '/../Views/partials/' . $path . '.php';
         if (file_exists($partialFile)) {
             include $partialFile;
+            return;
+        }
+
+        // 2. Check in main Views directory (e.g. invoices/templates/classic_gst)
+        $viewFile = __DIR__ . '/../Views/' . $path . '.php';
+        if (file_exists($viewFile)) {
+            include $viewFile;
+            return;
         }
     }
 

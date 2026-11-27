@@ -151,7 +151,7 @@
 }
 
 /* Screen Preview Styles (Authentic A4 Desktop layout) */
-body {
+body.print-preview-body {
     min-width: 1024px;
     background-color: #525659;
 }

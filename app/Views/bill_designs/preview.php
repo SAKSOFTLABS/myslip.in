@@ -57,10 +57,10 @@
 </div>
 
 <!-- Template Canvas Container -->
-<div class="preview-bill-canvas mx-auto shadow-lg rounded-3 overflow-hidden bg-white mb-5" style="max-width: 900px; border: 1px solid #cbd5e1;">
+<div class="preview-bill-canvas mx-auto shadow-lg rounded-3 mb-5" style="max-width: 900px; background-color: #525659; padding: 24px 15px; display: flex; justify-content: center; overflow-x: auto; border: 1px solid #475569;">
     <?php
     // Inject the resolved invoice template view with sample sale and authenticated company
-    echo \App\Core\View::partial(str_replace('.', '/', $templateView), [
+    \App\Core\View::partial($templateView, [
         'sale' => $sampleSale,
         'company' => $company,
         'settings' => $settings,

@@ -119,9 +119,9 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
                     <h3 class="fw-bold mb-1 text-dark"><?= e($company['company_name']) ?></h3>
                     <div class="small text-muted mb-1"><?= e($company['address_line1'] ?? '') ?><?= !empty($company['address_line2']) ? ', ' . e($company['address_line2']) : '' ?></div>
                     <div class="small text-muted mb-1"><?= e($company['city'] ?? '') ?><?= !empty($company['pin_code']) ? ' - ' . e($company['pin_code']) : '' ?>, <?= e($company['state'] ?? '') ?> (State Code: <?= e($company['state_code'] ?? '') ?>)</div>
-                    <div class="small text-muted">Phone: <strong class="text-dark"><?= e($company['mobile'] ?? '') ?></strong> | Email: <?= e($company['email'] ?: 'sales@business.com') ?></div>
+                    <div class="small text-muted">Phone: <strong class="text-dark"><?= e($company['mobile'] ?? '') ?></strong> | Email: <?= e($company['email'] ?? 'sales@business.com') ?></div>
                     <?php if ($isGst && !empty($company['gstin'])): ?>
-                        <div class="small fw-bold text-dark mt-1">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span> | PAN: <?= e($company['pan'] ?: 'N/A') ?></div>
+                        <div class="small fw-bold text-dark mt-1">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span> | PAN: <?= e($company['pan'] ?? 'N/A') ?></div>
                     <?php endif; ?>
                 </div>
             </div>

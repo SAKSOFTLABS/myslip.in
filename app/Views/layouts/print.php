@@ -10,7 +10,7 @@
     <link href="<?= asset('css/print.css') ?>" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body>
+<body class="print-preview-body">
 
 <div class="no-print bg-dark text-white p-3 d-flex justify-content-between align-items-center" style="min-width: 1024px; box-sizing: border-box;">
     <div>
