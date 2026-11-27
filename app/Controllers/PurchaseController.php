@@ -8,6 +8,8 @@ use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Vendor;
 use App\Models\Item;
+use App\Models\ItemGroup;
+use App\Models\Unit;
 use App\Models\AuditLog;
 use App\Services\GstEngine;
 use App\Services\StockEngine;
@@ -58,11 +60,17 @@ class PurchaseController extends Controller
         $vendors = $this->vendorModel->getVendorsWithOutstanding();
         $items = $this->itemModel->getItemsWithDetails();
         $nextPurchaseNumber = NumberingEngine::previewNextNumber($companyId, $fyId, 'purchase');
+        $unitModel = new Unit();
+        $units = $unitModel->getAvailableUnits($companyId);
+        $groupModel = new ItemGroup();
+        $groups = $groupModel->all([], 'name ASC');
 
         $this->view('transactions.purchases.form', [
             'pageTitle' => 'New Purchase Bill',
             'vendors' => $vendors,
             'items' => $items,
+            'units' => $units,
+            'groups' => $groups,
             'nextPurchaseNumber' => $nextPurchaseNumber,
             'states' => INDIAN_STATES
         ]);

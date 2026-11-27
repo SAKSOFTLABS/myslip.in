@@ -37,6 +37,7 @@ Router::get('/dashboard', 'DashboardController@index', $saasMiddlewares);
 Router::get('/items', 'ItemController@index', $saasMiddlewares);
 Router::get('/items/create', 'ItemController@create', $saasMiddlewares);
 Router::post('/items/store', 'ItemController@store', $saasMiddlewares);
+Router::post('/items/quick-store', 'ItemController@quickStore', $saasMiddlewares);
 Router::get('/items/edit/{id}', 'ItemController@edit', $saasMiddlewares);
 Router::post('/items/update/{id}', 'ItemController@update', $saasMiddlewares);
 Router::get('/items/delete/{id}', 'ItemController@delete', $saasMiddlewares);

@@ -2,6 +2,8 @@
 $gstEnabled = \App\Core\Session::get('gst_enabled', true);
 $companyState = \App\Core\Session::get('company_state', 'Maharashtra');
 $companyStateCode = \App\Core\Session::get('company_state_code', '27');
+$availableUnits = $units ?? (new \App\Models\Unit())->getAvailableUnits(\App\Core\Session::getCompanyId() ?? 0);
+$availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC');
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -90,8 +92,11 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
                         <input type="text" id="barcodeScannerInput" class="form-control" placeholder="Scan item barcode & press Enter..." onkeydown="if(event.key==='Enter'){event.preventDefault(); handleBarcodeScan(this.value); this.value='';}">
                     </div>
                 </div>
-                <div class="col-md-7 text-end">
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBillingRow()">
+                <div class="col-md-7 text-end d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold" data-bs-toggle="modal" data-bs-target="#quickProductModal" title="Quick Add New Product">
+                        <i class="bi bi-box-seam me-1"></i> + Add Product
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" onclick="addBillingRow()">
                         <i class="bi bi-plus-circle me-1"></i> Add Item Line
                     </button>
                 </div>
@@ -295,6 +300,101 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
     </div>
 </div>
 
+<!-- Quick Add Product Modal -->
+<div class="modal fade" id="quickProductModal" tabindex="-1" aria-labelledby="quickProductModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-success text-white py-2">
+                <h5 class="modal-title fs-6 fw-bold" id="quickProductModalLabel">
+                    <i class="bi bi-box-seam me-2"></i> Add New Product / Item
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickProductForm">
+                <?= csrf_field() ?>
+                <div class="modal-body p-3">
+                    <div id="quickProductAlert" class="alert alert-danger d-none py-2 small"></div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small">Product / Item Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="quickProductName" class="form-control form-control-sm" placeholder="e.g. Wireless Mouse / Basmati Rice 1kg" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Item Code / SKU</label>
+                            <input type="text" name="code" id="quickProductCode" class="form-control form-control-sm text-uppercase" placeholder="e.g. ITM-001">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Primary Unit <span class="text-danger">*</span></label>
+                            <select name="unit_id" id="quickProductUnit" class="form-select form-select-sm" required>
+                                <?php foreach ($availableUnits as $u): ?>
+                                    <option value="<?= $u['id'] ?>" <?= (strtoupper($u['short_name'] ?? '') === 'PCS' || strtoupper($u['name'] ?? '') === 'PIECES') ? 'selected' : '' ?>>
+                                        <?= e($u['name']) ?> (<?= e($u['short_name']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Category / Group</label>
+                            <select name="group_id" id="quickProductGroup" class="form-select form-select-sm">
+                                <option value="">-- General / No Group --</option>
+                                <?php foreach ($availableGroups as $g): ?>
+                                    <option value="<?= $g['id'] ?>"><?= e($g['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Barcode</label>
+                            <input type="text" name="barcode" id="quickProductBarcode" class="form-control form-control-sm" placeholder="Scan or type barcode">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Selling Rate (₹) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" name="selling_rate" id="quickProductSellingRate" class="form-control form-control-sm text-end fw-bold" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Purchase / Cost Rate (₹)</label>
+                            <input type="number" step="0.01" min="0" name="purchase_rate" id="quickProductPurchaseRate" class="form-control form-control-sm text-end" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Opening Stock Qty</label>
+                            <input type="number" step="any" min="0" name="opening_stock" id="quickProductOpeningStock" class="form-control form-control-sm text-end" value="0">
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">HSN / SAC Code</label>
+                            <input type="text" name="hsn_sac" id="quickProductHsn" class="form-control form-control-sm" placeholder="e.g. 84713010">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">GST Rate (%)</label>
+                            <select name="gst_rate" id="quickProductGstRate" class="form-select form-select-sm">
+                                <option value="0">0% (Exempt / Nil)</option>
+                                <option value="5">5%</option>
+                                <option value="12">12%</option>
+                                <option value="18" selected>18%</option>
+                                <option value="28">28%</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnSubmitQuickProduct" class="btn btn-sm btn-success fw-bold px-3">
+                        <i class="bi bi-check2-circle me-1"></i> Create Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="<?= asset('js/billing.js') ?>"></script>
 <script>
 window.AVAILABLE_CUSTOMERS = <?= json_encode($customers) ?>;
@@ -486,6 +586,100 @@ if (quickCustomerForm) {
             }
         } catch (err) {
             console.error('Quick customer creation error:', err);
+            alertEl.textContent = 'Network or server error occurred. Please try again.';
+            alertEl.classList.remove('d-none');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
+    });
+}
+
+// Quick Product Submission Handler
+const quickProductModalEl = document.getElementById('quickProductModal');
+const quickProductForm = document.getElementById('quickProductForm');
+if (quickProductModalEl && quickProductForm) {
+    quickProductModalEl.addEventListener('shown.bs.modal', function() {
+        document.getElementById('quickProductName')?.focus();
+    });
+
+    quickProductForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const alertEl = document.getElementById('quickProductAlert');
+        const submitBtn = document.getElementById('btnSubmitQuickProduct');
+        alertEl.classList.add('d-none');
+        alertEl.textContent = '';
+
+        const originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Creating...';
+
+        try {
+            const formData = new FormData(quickProductForm);
+            const response = await fetch('<?= url('/items/quick-store') ?>', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            const res = await response.json();
+            if (!response.ok || !res.success) {
+                alertEl.textContent = res.message || 'Failed to create product.';
+                alertEl.classList.remove('d-none');
+                return;
+            }
+
+            const item = res.data;
+            if (!item) {
+                alertEl.textContent = 'Unexpected server response.';
+                alertEl.classList.remove('d-none');
+                return;
+            }
+
+            // Add new item to available items list
+            if (Array.isArray(window.AVAILABLE_ITEMS)) {
+                window.AVAILABLE_ITEMS.unshift(item);
+            }
+
+            // Find an empty row in the billing grid or add a new one
+            let targetRowId = null;
+            const rows = document.querySelectorAll('#billingItemsBody tr.billing-row');
+            for (let i = 0; i < rows.length; i++) {
+                const idInput = rows[i].querySelector('.item-id-input');
+                const searchInput = rows[i].querySelector('.item-search-input');
+                if ((!idInput || !idInput.value) && (!searchInput || !searchInput.value.trim())) {
+                    const rowIdAttr = rows[i].id.replace('row_', '');
+                    targetRowId = parseInt(rowIdAttr);
+                    break;
+                }
+            }
+
+            if (!targetRowId) {
+                addBillingRow();
+                targetRowId = itemRowCount;
+            }
+
+            // Auto-select newly created item in the grid row
+            selectRowItem(targetRowId, item.id);
+
+            // Hide modal & reset form
+            const modalInstance = window.bootstrap?.Modal?.getInstance(quickProductModalEl) || (window.bootstrap?.Modal ? new bootstrap.Modal(quickProductModalEl) : null);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                quickProductModalEl.querySelector('[data-bs-dismiss="modal"]')?.click();
+            }
+            quickProductForm.reset();
+
+            // Notify user
+            if (typeof showToast === 'function') {
+                showToast(`Product "${item.name}" created and selected in billing grid!`, 'success');
+            }
+        } catch (err) {
+            console.error('Quick product creation error:', err);
             alertEl.textContent = 'Network or server error occurred. Please try again.';
             alertEl.classList.remove('d-none');
         } finally {

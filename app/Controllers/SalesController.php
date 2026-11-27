@@ -8,6 +8,8 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Customer;
 use App\Models\Item;
+use App\Models\ItemGroup;
+use App\Models\Unit;
 use App\Models\AuditLog;
 use App\Services\GstEngine;
 use App\Services\StockEngine;
@@ -58,12 +60,18 @@ class SalesController extends Controller
         $customers = $this->customerModel->getCustomersWithOutstanding();
         $items = $this->itemModel->getItemsWithDetails();
         $nextInvoiceNumber = NumberingEngine::previewNextNumber($companyId, $fyId, 'sale');
+        $unitModel = new Unit();
+        $units = $unitModel->getAvailableUnits($companyId);
+        $groupModel = new ItemGroup();
+        $groups = $groupModel->all([], 'name ASC');
 
         $this->view('transactions.sales.form', [
             'pageTitle' => 'New Sales Invoice',
             'sale' => null,
             'customers' => $customers,
             'items' => $items,
+            'units' => $units,
+            'groups' => $groups,
             'nextInvoiceNumber' => $nextInvoiceNumber,
             'states' => INDIAN_STATES
         ]);
