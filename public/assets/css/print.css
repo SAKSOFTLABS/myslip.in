@@ -93,6 +93,39 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
+
+    /* Full-Height Layout for Classic GST & Standard A4 */
+    .invoice-classic-gst,
+    .invoice-a4-fullheight {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        min-height: 272mm !important;
+        box-sizing: border-box !important;
+    }
+
+    .classic-table-wrapper,
+    .a4-table-wrapper {
+        flex-grow: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .classic-gst-table,
+    .a4-items-table {
+        height: 100% !important;
+        flex-grow: 1 !important;
+    }
+
+    .classic-gst-table tbody tr.spacer-row td,
+    .a4-items-table tbody tr.spacer-row td {
+        border-top: none !important;
+        border-bottom: 1.5px solid #000000 !important;
+        border-left: 1px solid #000000 !important;
+        border-right: 1px solid #000000 !important;
+        height: 100% !important;
+        padding: 0 !important;
+    }
 }
 
 /* Screen Preview Styles */
