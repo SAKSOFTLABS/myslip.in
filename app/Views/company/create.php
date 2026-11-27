@@ -128,6 +128,8 @@
 <script>
 function toggleGstFields() {
     const isChecked = document.getElementById('gstToggle').checked;
+    const hidden = document.querySelector('input[type="hidden"][name="gst_enabled"]');
+    if (hidden) hidden.value = isChecked ? '1' : '0';
     const row = document.getElementById('gstFieldsRow');
     if (isChecked) {
         row.style.display = 'flex';

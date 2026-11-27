@@ -44,6 +44,14 @@ class Session
         }
     }
 
+    public static function isGstEnabled(): bool
+    {
+        if (!isset($_SESSION['gst_enabled'])) {
+            return false;
+        }
+        return !empty($_SESSION['gst_enabled']) && $_SESSION['gst_enabled'] !== '0' && $_SESSION['gst_enabled'] !== 0;
+    }
+
     public static function set(string $key, mixed $value): void
     {
         $_SESSION[$key] = $value;
@@ -51,6 +59,9 @@ class Session
 
     public static function get(string $key, mixed $default = null): mixed
     {
+        if ($key === 'gst_enabled') {
+            return self::isGstEnabled();
+        }
         return $_SESSION[$key] ?? $default;
     }
 
@@ -111,7 +122,7 @@ class Session
     {
         $_SESSION['company_id'] = (int)$company['id'];
         $_SESSION['company_name'] = $company['company_name'];
-        $_SESSION['gst_enabled'] = (bool)$company['gst_enabled'];
+        $_SESSION['gst_enabled'] = !empty($company['gst_enabled']) && $company['gst_enabled'] !== '0' && $company['gst_enabled'] !== 0;
 
         $curr = $company['currency_symbol'] ?? '₹';
         if (empty($curr) || str_contains($curr, 'Ô') || str_contains($curr, 'â') || str_contains($curr, 'Ã')) {
