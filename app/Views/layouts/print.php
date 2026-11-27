@@ -24,13 +24,8 @@
         <?php endif; ?>
     </div>
     <div class="d-flex align-items-center gap-1 gap-md-2">
-        <!-- View Size Toggle for Mobile -->
-        <button type="button" class="btn btn-sm btn-outline-light d-md-none" id="zoomToggleBtn" onclick="toggleMobileZoom()" title="Toggle View Size">
-            <i class="bi bi-aspect-ratio me-1"></i> <span id="zoomToggleText">100%</span>
-        </button>
-
         <button type="button" class="btn btn-sm btn-light fw-semibold" onclick="window.print()">
-            <i class="bi bi-printer me-1"></i> <?= !empty($isPublicView) ? 'Print / PDF' : 'Print (Ctrl+P)' ?>
+            <i class="bi bi-printer me-1"></i> <?= !empty($isPublicView) ? 'Print / PDF' : 'Print Invoice (Ctrl + P)' ?>
         </button>
         <?php if (empty($isPublicView)): ?>
             <div class="btn-group">
@@ -276,78 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
-
-// Responsive A4 Mobile Scaling
-let isFitScreen = true;
-
-function applyMobileA4Scaling() {
-    const invoiceBox = document.querySelector('.invoice-a4-box, .invoice-classic-gst, .invoice-a4-fullheight, .invoice-a5-box, .invoice-retail-a5, .print-container');
-    const container = document.querySelector('.invoice-scaler-container');
-    const zoomBtnText = document.getElementById('zoomToggleText');
-    if (!invoiceBox || !container) return;
-
-    const screenWidth = window.innerWidth;
-
-    if (screenWidth < 820) {
-        // Natural width of A4 in pixels at standard 96 DPI: 210mm ≈ 794px; A5: 560px
-        const isA5 = invoiceBox.classList.contains('invoice-a5-box') || invoiceBox.classList.contains('invoice-retail-a5');
-        const standardWidth = isA5 ? 560 : 794;
-
-        if (isFitScreen) {
-            // Target width fits inside screen with small padding (8px each side)
-            const availableWidth = Math.max(screenWidth - 16, 280);
-            const scale = availableWidth / standardWidth;
-
-            invoiceBox.style.width = standardWidth + 'px';
-            invoiceBox.style.minWidth = standardWidth + 'px';
-            invoiceBox.style.transform = `scale(${scale})`;
-            invoiceBox.style.transformOrigin = 'top center';
-            invoiceBox.style.margin = '0 auto';
-
-            // Set height on container so outer scroll matches visual height
-            const unscaledHeight = invoiceBox.scrollHeight || invoiceBox.offsetHeight || 1123;
-            const scaledHeight = Math.ceil(unscaledHeight * scale);
-            container.style.height = (scaledHeight + 20) + 'px';
-            container.style.overflow = 'hidden';
-
-            if (zoomBtnText) zoomBtnText.textContent = '100%';
-        } else {
-            // Full 100% zoom with horizontal scroll
-            invoiceBox.style.width = standardWidth + 'px';
-            invoiceBox.style.minWidth = standardWidth + 'px';
-            invoiceBox.style.transform = 'none';
-            invoiceBox.style.margin = '0 auto';
-            container.style.height = 'auto';
-            container.style.overflow = 'visible';
-
-            if (zoomBtnText) zoomBtnText.textContent = 'Fit';
-        }
-    } else {
-        // Desktop / Tablet > 820px
-        invoiceBox.style.transform = 'none';
-        invoiceBox.style.width = '';
-        invoiceBox.style.minWidth = '';
-        invoiceBox.style.margin = '0 auto';
-        container.style.height = 'auto';
-        container.style.overflow = 'visible';
-    }
-}
-
-function toggleMobileZoom() {
-    isFitScreen = !isFitScreen;
-    applyMobileA4Scaling();
-}
-
-window.addEventListener('resize', applyMobileA4Scaling);
-window.addEventListener('orientationchange', () => {
-    setTimeout(applyMobileA4Scaling, 200);
-});
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(applyMobileA4Scaling, 80);
-});
-window.addEventListener('load', () => {
-    setTimeout(applyMobileA4Scaling, 100);
 });
 </script>
 

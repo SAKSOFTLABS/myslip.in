@@ -84,6 +84,53 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
     border-color: #000000 !important;
 }
 
+@media screen and (max-width: 820px) {
+    .invoice-classic-gst {
+        min-height: auto !important;
+        height: auto !important;
+        padding: 14px 10px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .classic-table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin: 8px 0 10px 0 !important;
+    }
+    .classic-gst-table {
+        min-width: 520px !important;
+        height: auto !important;
+        flex-grow: 0 !important;
+    }
+    .classic-gst-table tbody tr.spacer-row {
+        display: none !important;
+    }
+    .classic-bottom-section .row.g-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    .classic-bottom-section .row.g-2 > .col-7,
+    .classic-bottom-section .row.g-2 > .col-5 {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .classic-top-section h3 {
+        font-size: 1.15rem !important;
+    }
+    .classic-top-section h4 {
+        font-size: 1rem !important;
+    }
+    .classic-top-section .row.g-2 > .col-7,
+    .classic-top-section .row.g-2 > .col-5 {
+        width: 100% !important;
+        text-align: left !important;
+    }
+}
+
 @media print {
     @page {
         size: A4 portrait;
