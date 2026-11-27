@@ -2,35 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=1024, user-scalable=yes">
     <title><?= isset($pageTitle) ? e($pageTitle) : 'Invoice Print' ?> — MYSLIP.IN</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= asset('css/print.css') ?>" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-<div class="no-print bg-dark text-white p-2 p-md-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+<div class="no-print bg-dark text-white p-3 d-flex justify-content-between align-items-center" style="min-width: 1024px; box-sizing: border-box;">
     <div>
         <?php if (!empty($isPublicView)): ?>
             <span class="fw-bold fs-6 text-white d-inline-flex align-items-center">
-                <i class="bi bi-receipt-cutoff text-warning me-1"></i> <?= e($company['company_name'] ?? 'MYSLIP') ?> — Invoice #<?= e($sale['invoice_number'] ?? '') ?>
+                <i class="bi bi-receipt-cutoff text-warning me-2"></i> <?= e($company['company_name'] ?? 'MYSLIP') ?> — Invoice #<?= e($sale['invoice_number'] ?? '') ?>
             </span>
         <?php else: ?>
             <a href="<?= url('/sales') ?>" class="btn btn-sm btn-outline-light me-1">
-                <i class="bi bi-arrow-left me-1"></i> <span class="d-none d-sm-inline">Back to Invoices</span><span class="d-inline d-sm-none">Back</span>
+                <i class="bi bi-arrow-left me-1"></i> Back to Invoices
             </a>
         <?php endif; ?>
     </div>
-    <div class="d-flex align-items-center gap-1 gap-md-2">
+    <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-sm btn-light fw-semibold" onclick="window.print()">
             <i class="bi bi-printer me-1"></i> <?= !empty($isPublicView) ? 'Print / PDF' : 'Print Invoice (Ctrl + P)' ?>
+        </button>
+        <button type="button" id="btnDownloadInvoice" class="btn btn-sm btn-primary fw-semibold" onclick="downloadInvoicePDF()" title="Directly download invoice as PDF">
+            <i class="bi bi-download me-1"></i> Download Invoice
         </button>
         <?php if (empty($isPublicView)): ?>
             <div class="btn-group">
                 <button type="button" class="btn btn-sm btn-success fw-semibold" onclick="shareWhatsApp()" title="Share bill on WhatsApp">
-                    <i class="bi bi-whatsapp me-1"></i> Share
+                    <i class="bi bi-whatsapp me-1"></i> Share WhatsApp
                 </button>
                 <button type="button" class="btn btn-sm btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" title="WhatsApp Options">
                     <span class="visually-hidden">Toggle Dropdown</span>
@@ -258,6 +262,52 @@ function sendToWhatsApp(phone) {
     const message = buildWhatsAppMessage();
     const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+}
+
+function downloadInvoicePDF() {
+    const element = document.querySelector('.invoice-a4-box, .print-container');
+    if (!element) return;
+
+    const invoiceNumber = <?= json_encode($sale['invoice_number'] ?? 'invoice') ?>;
+    const filename = `${invoiceNumber}.pdf`;
+
+    const btn = document.getElementById('btnDownloadInvoice');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Downloading...';
+    }
+
+    if (typeof html2pdf === 'undefined') {
+        window.print();
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+        return;
+    }
+
+    const opt = {
+        margin:       [0, 0, 0, 0],
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }).catch(err => {
+        console.error('PDF generation error:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+        window.print();
+    });
 }
 
 // Support Enter key press inside modal input
