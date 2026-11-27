@@ -94,6 +94,13 @@ class SuperAdminController extends Controller
             $this->redirect('/admin/companies');
         }
 
+        // Security check: confirmation word must be "delete" (case-insensitive)
+        $confirmationWord = strtolower(trim((string)$this->request->input('confirmation_word', '')));
+        if ($confirmationWord !== 'delete') {
+            $this->flash('danger', 'Spelling mistake.');
+            $this->redirect('/admin/companies');
+        }
+
         try {
             $tablesWithCompanyId = [
                 'sales_items',

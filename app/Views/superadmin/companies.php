@@ -57,12 +57,13 @@
                                             <i class="bi bi-<?= $c['status'] === 'active' ? 'pause-circle' : 'play-circle' ?>"></i>
                                         </button>
                                     </form>
-                                    <form action="<?= url('/admin/companies/delete/' . $c['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('⚠️ DANGER: PERMANENT DELETION\n\nAre you sure you want to permanently delete tenant [<?= e(addslashes($c['company_name'])) ?>]?\n\nAll invoices, items, customers, vendors, ledgers, and data for this company will be PERMANENTLY ERASED.\n\nThis action CANNOT be undone!');">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Permanently Delete Tenant">
-                                            <i class="bi bi-trash3"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger btn-delete-company" 
+                                            data-company-id="<?= $c['id'] ?>" 
+                                            data-company-name="<?= e($c['company_name']) ?>" 
+                                            title="Permanently Delete Tenant">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -72,3 +73,103 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Company Security Confirmation Modal -->
+<div class="modal fade" id="deleteCompanyModal" tabindex="-1" aria-labelledby="deleteCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold" id="deleteCompanyModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Permanent Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deleteCompanyForm" method="POST" action="">
+                <?= csrf_field() ?>
+                <div class="modal-body p-4">
+                    <p class="text-danger fw-semibold mb-2">
+                        ⚠️ Warning: You are about to permanently delete <strong id="deleteTargetCompanyName" class="text-dark"></strong>.
+                    </p>
+                    <p class="text-muted small mb-3">
+                        This action will immediately erase all company invoices, items, ledger entries, customers, vendors, and transactions. This action cannot be reversed.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="confirmWordInput" class="form-label fw-bold small text-dark">
+                            Enter the confirmation word to proceed <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="confirmation_word" id="confirmWordInput" class="form-control" autocomplete="off" required>
+                        <div id="spellingMistakeAlert" class="text-danger small mt-2 d-none fw-bold">
+                            <i class="bi bi-x-circle-fill me-1"></i> Spelling mistake.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-bold shadow-sm">
+                        <i class="bi bi-trash3-fill me-1"></i> Permanently Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('deleteCompanyModal');
+    const deleteModal = modalEl && typeof bootstrap !== 'undefined' ? new bootstrap.Modal(modalEl) : null;
+    const formEl = document.getElementById('deleteCompanyForm');
+    const targetNameEl = document.getElementById('deleteTargetCompanyName');
+    const inputEl = document.getElementById('confirmWordInput');
+    const errorEl = document.getElementById('spellingMistakeAlert');
+    const baseUrl = "<?= url('/admin/companies/delete/') ?>";
+
+    document.querySelectorAll('.btn-delete-company').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const compId = this.getAttribute('data-company-id');
+            const compName = this.getAttribute('data-company-name');
+
+            if (formEl) formEl.action = baseUrl + compId;
+            if (targetNameEl) targetNameEl.textContent = compName;
+            if (inputEl) {
+                inputEl.value = '';
+                inputEl.classList.remove('is-invalid');
+            }
+            if (errorEl) errorEl.classList.add('d-none');
+
+            if (deleteModal) {
+                deleteModal.show();
+                setTimeout(function() {
+                    if (inputEl) inputEl.focus();
+                }, 300);
+            }
+        });
+    });
+
+    if (formEl) {
+        formEl.addEventListener('submit', function(e) {
+            const typed = inputEl ? inputEl.value.trim().toLowerCase() : '';
+            if (typed !== 'delete') {
+                e.preventDefault();
+                if (inputEl) {
+                    inputEl.classList.add('is-invalid');
+                    inputEl.focus();
+                    inputEl.select();
+                }
+                if (errorEl) {
+                    errorEl.classList.remove('d-none');
+                }
+                return false;
+            }
+        });
+    }
+
+    if (inputEl) {
+        inputEl.addEventListener('input', function() {
+            inputEl.classList.remove('is-invalid');
+            if (errorEl) errorEl.classList.add('d-none');
+        });
+    }
+});
+</script>
