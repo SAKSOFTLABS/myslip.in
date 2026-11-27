@@ -41,6 +41,24 @@ class VendorController extends Controller
     {
         $this->validateCsrf();
         $companyId = Session::getCompanyId();
+        $db = Database::getInstance();
+        if (!$companyId || !$db->fetchOne("SELECT id FROM `companies` WHERE id = :id LIMIT 1", ['id' => $companyId])) {
+            $userId = Session::getUserId();
+            $comp = $db->fetchOne(
+                "SELECT c.* FROM `companies` c JOIN `company_users` cu ON c.id = cu.company_id WHERE cu.user_id = :uid AND cu.status = 'active' ORDER BY c.id ASC LIMIT 1",
+                ['uid' => $userId]
+            ) ?: $db->fetchOne("SELECT * FROM `companies` ORDER BY id ASC LIMIT 1");
+
+            if ($comp) {
+                $fy = $db->fetchOne("SELECT * FROM `financial_years` WHERE `company_id` = :cid AND `is_current` = 1 LIMIT 1", ['cid' => $comp['id']]);
+                Session::setTenant($comp, $fy, 1);
+                $companyId = (int)$comp['id'];
+            } else {
+                $this->flash('danger', 'No active company found. Please create or select a company first.');
+                $this->redirect('/company/create');
+                return;
+            }
+        }
 
         $name = trim($this->request->input('name', ''));
         $contactPerson = trim($this->request->input('contact_person', ''));
@@ -116,6 +134,23 @@ class VendorController extends Controller
         }
 
         $companyId = Session::getCompanyId();
+        $db = Database::getInstance();
+        if (!$companyId || !$db->fetchOne("SELECT id FROM `companies` WHERE id = :id LIMIT 1", ['id' => $companyId])) {
+            $userId = Session::getUserId();
+            $comp = $db->fetchOne(
+                "SELECT c.* FROM `companies` c JOIN `company_users` cu ON c.id = cu.company_id WHERE cu.user_id = :uid AND cu.status = 'active' ORDER BY c.id ASC LIMIT 1",
+                ['uid' => $userId]
+            ) ?: $db->fetchOne("SELECT * FROM `companies` ORDER BY id ASC LIMIT 1");
+
+            if ($comp) {
+                $fy = $db->fetchOne("SELECT * FROM `financial_years` WHERE `company_id` = :cid AND `is_current` = 1 LIMIT 1", ['cid' => $comp['id']]);
+                Session::setTenant($comp, $fy, 1);
+                $companyId = (int)$comp['id'];
+            } else {
+                $this->jsonError('No active company found. Please create or select a company first.');
+                return;
+            }
+        }
         $name = trim($this->request->input('name', ''));
         $mobile = trim($this->request->input('mobile', ''));
         $state = $this->request->input('state', Session::get('company_state', 'Maharashtra'));
@@ -260,6 +295,23 @@ class VendorController extends Controller
     public function ledger(int $id): void
     {
         $companyId = Session::getCompanyId();
+        $db = Database::getInstance();
+        if (!$companyId || !$db->fetchOne("SELECT id FROM `companies` WHERE id = :id LIMIT 1", ['id' => $companyId])) {
+            $userId = Session::getUserId();
+            $comp = $db->fetchOne(
+                "SELECT c.* FROM `companies` c JOIN `company_users` cu ON c.id = cu.company_id WHERE cu.user_id = :uid AND cu.status = 'active' ORDER BY c.id ASC LIMIT 1",
+                ['uid' => $userId]
+            ) ?: $db->fetchOne("SELECT * FROM `companies` ORDER BY id ASC LIMIT 1");
+
+            if ($comp) {
+                $fy = $db->fetchOne("SELECT * FROM `financial_years` WHERE `company_id` = :cid AND `is_current` = 1 LIMIT 1", ['cid' => $comp['id']]);
+                Session::setTenant($comp, $fy, 1);
+                $companyId = (int)$comp['id'];
+            } else {
+                $this->jsonError('No active company found. Please create or select a company first.');
+                return;
+            }
+        }
         $vendor = $this->vendorModel->find($id);
         if (!$vendor) {
             $this->flash('danger', 'Vendor not found.');
