@@ -229,6 +229,23 @@ function url(string $path = ''): string
 }
 
 /**
+ * Generate absolute URL including protocol and domain
+ */
+function full_url(string $path = ''): string
+{
+    $config = require __DIR__ . '/../Config/app.php';
+    $appUrl = rtrim($config['url'] ?? '', '/');
+
+    if (!empty($_SERVER['HTTP_HOST'])) {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 80) == 443 ? 'https://' : 'http://';
+        $appUrl = $scheme . $_SERVER['HTTP_HOST'];
+    }
+
+    $urlPath = url($path);
+    return rtrim($appUrl, '/') . '/' . ltrim($urlPath, '/');
+}
+
+/**
  * Generate asset URL
  */
 function asset(string $path): string

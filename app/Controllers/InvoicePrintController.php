@@ -87,7 +87,7 @@ class InvoicePrintController extends Controller
         $viewFile = BillTemplateEngine::getViewPath($templateKey);
 
         $token = substr(hash('sha256', $sale['id'] . $sale['invoice_number'] . ($sale['created_at'] ?? 'myslip')), 0, 16);
-        $publicInvoiceUrl = url('/invoices/view/' . $sale['id'] . '?token=' . $token);
+        $publicInvoiceUrl = full_url('/invoices/view/' . $sale['id'] . '?token=' . $token);
 
         $this->view($viewFile, [
             'pageTitle' => 'Invoice ' . $sale['invoice_number'],
@@ -151,7 +151,7 @@ class InvoicePrintController extends Controller
             'isPreview' => false,
             'isPublicView' => true,
             'customerMobile' => $sale['customer_mobile'] ?? '',
-            'publicInvoiceUrl' => url('/invoices/view/' . $sale['id'] . '?token=' . $providedToken)
+            'publicInvoiceUrl' => full_url('/invoices/view/' . $sale['id'] . '?token=' . $providedToken)
         ], 'print');
     }
 }

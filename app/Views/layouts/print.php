@@ -228,20 +228,25 @@ function buildWhatsAppMessage() {
     const balanceDue = <?= (float)($sale['balance_amount'] ?? 0) ?>;
     const publicUrl = <?= json_encode($publicInvoiceUrl ?? '') ?>;
 
+    let fullUrl = publicUrl ? publicUrl.trim() : '';
+    if (fullUrl && !fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+        fullUrl = window.location.origin + (fullUrl.startsWith('/') ? '' : '/') + fullUrl;
+    }
+
     let msg = `Hello ${customerName},\n\n`;
     msg += `Thank you for your business with *${companyName}*!\n`;
     msg += `Here are your invoice details:\n\n`;
-    msg += `🧾 *Invoice No:* ${invNumber}\n`;
-    msg += `📅 *Date:* ${invDate}\n`;
-    msg += `💰 *Grand Total:* ${grandTotal}\n`;
-    msg += `💳 *Paid Amount:* ${paidAmount}\n`;
+    msg += `• *Invoice No:* ${invNumber}\n`;
+    msg += `• *Date:* ${invDate}\n`;
+    msg += `• *Grand Total:* ${grandTotal}\n`;
+    msg += `• *Paid Amount:* ${paidAmount}\n`;
     if (balanceDue > 0) {
-        msg += `⚠️ *Balance Due:* ₹${balanceDue.toFixed(2)}\n`;
+        msg += `• *Balance Due:* ₹${balanceDue.toFixed(2)}\n`;
     } else {
-        msg += `✅ *Payment Status:* Fully Paid\n`;
+        msg += `• *Payment Status:* Fully Paid\n`;
     }
-    if (publicUrl) {
-        msg += `\n📄 *View/Print Bill Online:*\n${publicUrl}\n`;
+    if (fullUrl) {
+        msg += `\n*View / Print Bill Online:*\n${fullUrl}\n`;
     }
     msg += `\nBest regards,\n*${companyName}*`;
     return msg;
