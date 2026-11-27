@@ -23,9 +23,14 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
     <div class="card-custom mb-3">
         <div class="card-body p-3">
             <div class="row g-3">
-                <!-- Customer Selection (Type & Select) -->
+                <!-- Customer Selection (Type & Select with Quick Shortcut) -->
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold small">Customer <span class="text-danger">*</span></label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label fw-semibold small mb-0">Customer <span class="text-danger">*</span></label>
+                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 fw-semibold rounded-pill" data-bs-toggle="modal" data-bs-target="#quickCustomerModal" title="Add New Customer">
+                            <i class="bi bi-plus-circle-fill text-primary me-1"></i> New Customer
+                        </button>
+                    </div>
                     <div class="type-select-wrapper position-relative">
                         <input type="hidden" name="customer_id" id="customerSelect" value="" required>
                         <div class="input-group input-group-sm">
@@ -39,6 +44,9 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
                                    required>
                             <button type="button" class="btn btn-outline-secondary btn-clear-selection d-none" id="btnClearCustomer" title="Clear customer">
                                 <i class="bi bi-x-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-primary fw-bold px-2" data-bs-toggle="modal" data-bs-target="#quickCustomerModal" title="Quick Add Customer">
+                                <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
                         <div class="type-select-dropdown shadow-lg rounded-2 border d-none" id="customerDropdownList"></div>
@@ -223,6 +231,70 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
     </div>
 </form>
 
+<!-- Quick Add Customer Modal -->
+<div class="modal fade" id="quickCustomerModal" tabindex="-1" aria-labelledby="quickCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="quickCustomerModalLabel">
+                    <i class="bi bi-person-plus-fill me-2"></i> Add New Customer
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickCustomerForm">
+                <?= csrf_field() ?>
+                <div class="modal-body p-3">
+                    <div id="quickCustomerAlert" class="alert alert-danger d-none py-2 small"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Customer / Business Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="quickCustomerName" class="form-control form-control-sm" placeholder="e.g. Acme Corp / Rahul Sharma" required>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Mobile Number</label>
+                            <input type="tel" name="mobile" id="quickCustomerMobile" class="form-control form-control-sm" placeholder="10-digit mobile" maxlength="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">GSTIN (Optional)</label>
+                            <input type="text" name="gstin" id="quickCustomerGstin" class="form-control form-control-sm text-uppercase" placeholder="27ABCDE1234F1Z5" maxlength="15">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">State <span class="text-danger">*</span></label>
+                            <select name="state" id="quickCustomerState" class="form-select form-select-sm" required>
+                                <?php foreach (INDIAN_STATES as $code => $stName): ?>
+                                    <option value="<?= e($stName) ?>" <?= (strcasecmp($stName, Session::get('company_state', 'Maharashtra')) === 0) ? 'selected' : '' ?>>
+                                        <?= e($stName) ?> (<?= $code ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Email (Optional)</label>
+                            <input type="email" name="email" id="quickCustomerEmail" class="form-control form-control-sm" placeholder="customer@example.com">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small">Billing Address / City (Optional)</label>
+                        <input type="text" name="address" id="quickCustomerAddress" class="form-control form-control-sm" placeholder="Street / Area / City">
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnSubmitQuickCustomer" class="btn btn-sm btn-primary fw-bold px-3">
+                        <i class="bi bi-check2-circle me-1"></i> Create Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="<?= asset('js/billing.js') ?>"></script>
 <script>
 window.AVAILABLE_CUSTOMERS = <?= json_encode($customers) ?>;
@@ -325,6 +397,89 @@ document.addEventListener('keydown', function(e) {
         submitSalesInvoice('save_and_print');
     }
 });
+
+// Auto-focus first input when quick customer modal opens
+const quickCustomerModalEl = document.getElementById('quickCustomerModal');
+if (quickCustomerModalEl) {
+    quickCustomerModalEl.addEventListener('shown.bs.modal', function () {
+        document.getElementById('quickCustomerName')?.focus();
+    });
+}
+
+// Quick Customer Form Submit via AJAX
+const quickCustomerForm = document.getElementById('quickCustomerForm');
+if (quickCustomerForm) {
+    quickCustomerForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const alertEl = document.getElementById('quickCustomerAlert');
+        const submitBtn = document.getElementById('btnSubmitQuickCustomer');
+        const originalBtnHtml = submitBtn.innerHTML;
+
+        alertEl.classList.add('d-none');
+        alertEl.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Creating...';
+
+        try {
+            const formData = new FormData(this);
+            const response = await fetch('/customers/quick-store', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const res = await response.json();
+            if (!res.success) {
+                alertEl.textContent = res.error || res.message || 'Failed to create customer.';
+                alertEl.classList.remove('d-none');
+                return;
+            }
+
+            const customer = res.data;
+            if (!customer) {
+                alertEl.textContent = 'Unexpected server response.';
+                alertEl.classList.remove('d-none');
+                return;
+            }
+
+            // Add new customer to available list
+            if (Array.isArray(window.AVAILABLE_CUSTOMERS)) {
+                window.AVAILABLE_CUSTOMERS.unshift(customer);
+            }
+
+            // Auto-select in sales form
+            const customerSelect = document.getElementById('customerSelect');
+            const customerSearchInput = document.getElementById('customerSearchInput');
+            const btnClear = document.getElementById('btnClearCustomer');
+
+            if (customerSelect) customerSelect.value = customer.id;
+            if (customerSearchInput) customerSearchInput.value = customer.name + (customer.mobile ? ' (' + customer.mobile + ')' : '');
+            if (btnClear) btnClear.classList.remove('d-none');
+
+            // Trigger selection logic (interstate tax calculations, badge update, etc.)
+            onCustomerSelected(customer);
+
+            // Hide modal & reset form
+            const modalInstance = bootstrap.Modal.getInstance(quickCustomerModalEl) || new bootstrap.Modal(quickCustomerModalEl);
+            modalInstance.hide();
+            quickCustomerForm.reset();
+
+            // Notify user
+            if (typeof showToast === 'function') {
+                showToast(`Customer "${customer.name}" created and selected!`, 'success');
+            }
+        } catch (err) {
+            console.error('Quick customer creation error:', err);
+            alertEl.textContent = 'Network or server error occurred. Please try again.';
+            alertEl.classList.remove('d-none');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
+    });
+}
 
 // Initialize customer type & select and 1 clean row on load
 document.addEventListener('DOMContentLoaded', function() {

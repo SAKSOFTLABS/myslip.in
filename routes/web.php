@@ -50,6 +50,7 @@ Router::post('/groups/store', 'ItemController@storeGroup', $saasMiddlewares);
 Router::get('/customers', 'CustomerController@index', $saasMiddlewares);
 Router::get('/customers/create', 'CustomerController@create', $saasMiddlewares);
 Router::post('/customers/store', 'CustomerController@store', $saasMiddlewares);
+Router::post('/customers/quick-store', 'CustomerController@quickStore', $saasMiddlewares);
 Router::get('/customers/edit/{id}', 'CustomerController@edit', $saasMiddlewares);
 Router::post('/customers/update/{id}', 'CustomerController@update', $saasMiddlewares);
 Router::get('/customers/delete/{id}', 'CustomerController@delete', $saasMiddlewares);
@@ -59,6 +60,7 @@ Router::get('/customers/ledger/{id}', 'CustomerController@ledger', $saasMiddlewa
 Router::get('/vendors', 'VendorController@index', $saasMiddlewares);
 Router::get('/vendors/create', 'VendorController@create', $saasMiddlewares);
 Router::post('/vendors/store', 'VendorController@store', $saasMiddlewares);
+Router::post('/vendors/quick-store', 'VendorController@quickStore', $saasMiddlewares);
 Router::get('/vendors/edit/{id}', 'VendorController@edit', $saasMiddlewares);
 Router::post('/vendors/update/{id}', 'VendorController@update', $saasMiddlewares);
 Router::get('/vendors/delete/{id}', 'VendorController@delete', $saasMiddlewares);

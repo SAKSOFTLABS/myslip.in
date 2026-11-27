@@ -46,7 +46,7 @@ class CustomerController extends Controller
         $mobile = trim($this->request->input('mobile', ''));
         $alternateMobile = trim($this->request->input('alternate_mobile', ''));
         $email = trim($this->request->input('email', ''));
-        $billingAddress = trim($this->request->input('billing_address', ''));
+        $billingAddress = trim($this->request->input('billing_address') ?: $this->request->input('address', ''));
         $city = trim($this->request->input('city', ''));
         $district = trim($this->request->input('district', ''));
         $state = $this->request->input('state', Session::get('company_state', 'Maharashtra'));
@@ -108,6 +108,69 @@ class CustomerController extends Controller
         $this->redirect('/customers');
     }
 
+    public function quickStore(): void
+    {
+        $token = $this->request->input('_token');
+        if (!Security::validateCsrfToken($token)) {
+            $this->jsonError('Invalid or expired security token. Please refresh the page.');
+            return;
+        }
+
+        $companyId = Session::getCompanyId();
+        $name = trim($this->request->input('name', ''));
+        $mobile = trim($this->request->input('mobile', ''));
+        $state = $this->request->input('state', Session::get('company_state', 'Maharashtra'));
+        $gstin = strtoupper(trim($this->request->input('gstin', '')));
+        $email = trim($this->request->input('email', ''));
+        $billingAddress = trim($this->request->input('billing_address') ?: $this->request->input('address', ''));
+
+        if (empty($name)) {
+            $this->jsonError('Customer Name is required.');
+            return;
+        }
+
+        $stateCode = '27';
+        if (!empty($gstin) && strlen($gstin) >= 2) {
+            $stateCode = substr($gstin, 0, 2);
+        } else {
+            foreach (INDIAN_STATES as $code => $stName) {
+                if (strcasecmp($stName, $state) === 0) {
+                    $stateCode = $code;
+                    break;
+                }
+            }
+        }
+
+        try {
+            $customerId = $this->customerModel->create([
+                'company_id' => $companyId,
+                'name' => $name,
+                'mobile' => $mobile ?: null,
+                'email' => $email ?: null,
+                'billing_address' => $billingAddress ?: null,
+                'state' => $state,
+                'state_code' => $stateCode,
+                'gstin' => $gstin ?: null,
+                'credit_limit' => 0.00,
+                'credit_days' => 0,
+                'opening_balance' => 0.00,
+                'balance_type' => 'DR',
+                'status' => 'active'
+            ]);
+
+            AccountingEngine::getCustomerAccountId($companyId, $customerId, $name);
+            AuditLog::log('Customer Created (Quick Shortcut)', 'Customers', $customerId);
+
+            $customer = $this->customerModel->find($customerId);
+            $customer['invoice_outstanding'] = 0.00;
+
+            $this->jsonSuccess("Customer [{$name}] created successfully.", $customer);
+        } catch (\Throwable $e) {
+            error_log("Failed to quick create customer: " . $e->getMessage());
+            $this->jsonError('Failed to create customer: ' . $e->getMessage());
+        }
+    }
+
     public function edit(int $id): void
     {
         $customer = $this->customerModel->find($id);
@@ -137,7 +200,7 @@ class CustomerController extends Controller
         $mobile = trim($this->request->input('mobile', ''));
         $alternateMobile = trim($this->request->input('alternate_mobile', ''));
         $email = trim($this->request->input('email', ''));
-        $billingAddress = trim($this->request->input('billing_address', ''));
+        $billingAddress = trim($this->request->input('billing_address') ?: $this->request->input('address', ''));
         $city = trim($this->request->input('city', ''));
         $district = trim($this->request->input('district', ''));
         $state = $this->request->input('state', 'Maharashtra');

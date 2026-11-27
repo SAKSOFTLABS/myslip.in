@@ -63,7 +63,8 @@ class PurchaseController extends Controller
             'pageTitle' => 'New Purchase Bill',
             'vendors' => $vendors,
             'items' => $items,
-            'nextPurchaseNumber' => $nextPurchaseNumber
+            'nextPurchaseNumber' => $nextPurchaseNumber,
+            'states' => INDIAN_STATES
         ]);
     }
 
