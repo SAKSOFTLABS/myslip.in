@@ -14,16 +14,21 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom">
-        <div>
-            <span class="badge px-3 py-1 text-white fw-bold text-uppercase mb-2" style="background-color: <?= $emerald ?>; font-size: 11px;">
-                <?= $isGst ? 'GST TAX INVOICE' : 'INVOICE BILL' ?>
-            </span>
-            <h2 class="fw-bold mb-1" style="color: <?= $emeraldDark ?>;"><?= e($company['company_name']) ?></h2>
-            <div class="small text-muted"><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?></div>
-            <div class="small text-muted">Phone: <strong><?= e($company['mobile'] ?? '') ?></strong> | Email: <?= e($company['email'] ?? '') ?></div>
-            <?php if ($isGst && !empty($company['gstin'])): ?>
-                <div class="small fw-bold mt-1 text-dark">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span></div>
+        <div class="d-flex align-items-start gap-3">
+            <?php if (!empty($company['logo_url'])): ?>
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 75px; max-width: 150px; object-fit: contain;" class="mt-1 flex-shrink-0">
             <?php endif; ?>
+            <div>
+                <span class="badge px-3 py-1 text-white fw-bold text-uppercase mb-2" style="background-color: <?= $emerald ?>; font-size: 11px;">
+                    <?= $isGst ? 'GST TAX INVOICE' : 'INVOICE BILL' ?>
+                </span>
+                <h2 class="fw-bold mb-1" style="color: <?= $emeraldDark ?>;"><?= e($company['company_name']) ?></h2>
+                <div class="small text-muted"><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?></div>
+                <div class="small text-muted">Phone: <strong><?= e($company['mobile'] ?? '') ?></strong> | Email: <?= e($company['email'] ?? '') ?></div>
+                <?php if ($isGst && !empty($company['gstin'])): ?>
+                    <div class="small fw-bold mt-1 text-dark">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span></div>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="text-end">
             <div class="fs-4 fw-bold" style="color: <?= $emerald ?>;"><?= e($sale['invoice_number']) ?></div>

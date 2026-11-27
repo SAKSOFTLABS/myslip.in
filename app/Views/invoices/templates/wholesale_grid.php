@@ -11,6 +11,11 @@ $headerBg = '#334155';
         <!-- Header -->
         <div class="p-3 text-center border-bottom border-2 border-dark" style="background-color: #f8fafc;">
             <div class="text-uppercase fw-bold" style="letter-spacing: 1px; font-size: 13px;"><?= $isGst ? 'TAX INVOICE (RULE 46 OF CGST RULES)' : 'COMMERCIAL BILL OF SUPPLY' ?></div>
+            <?php if (!empty($company['logo_url'])): ?>
+                <div class="my-2 text-center">
+                    <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 65px; max-width: 180px; object-fit: contain;">
+                </div>
+            <?php endif; ?>
             <h2 class="fw-bold my-1 text-uppercase"><?= e($company['company_name']) ?></h2>
             <div><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?> - <?= e($company['pin_code'] ?? '') ?></div>
             <div>Phone: <strong><?= e($company['mobile'] ?? '') ?></strong> | Email: <?= e($company['email'] ?? '') ?></div>

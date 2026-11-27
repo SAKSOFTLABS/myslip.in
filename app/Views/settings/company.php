@@ -2,11 +2,48 @@
     <div class="col-lg-10">
         <div class="card-custom">
             <div class="card-header">
-                <span class="fw-bold"><i class="bi bi-building-gear me-2 text-primary"></i> Company Profile & Tax Settings</span>
+                <span class="fw-bold"><i class="bi bi-building-gear me-2 text-primary"></i> Company Set Up</span>
             </div>
             <div class="card-body">
-                <form action="<?= url('/settings/company/update') ?>" method="POST">
+                <form action="<?= url('/settings/company/update') ?>" method="POST" enctype="multipart/form-data">
                     <?= csrf_field() ?>
+
+                    <!-- Company Logo Upload Section -->
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-3 text-center">
+                                <div class="p-2 border rounded-3 bg-white shadow-sm d-flex flex-column align-items-center justify-content-center" style="min-height: 120px; max-height: 140px; overflow: hidden;" id="logoPreviewContainer">
+                                    <?php if (!empty($company['logo_url'])): ?>
+                                        <img src="<?= asset($company['logo_url']) ?>" alt="Company Logo" class="img-fluid" id="logoPreviewImg" style="max-height: 110px; max-width: 100%; object-fit: contain;">
+                                    <?php else: ?>
+                                        <div id="noLogoPlaceholder" class="text-muted text-center py-3">
+                                            <i class="bi bi-image fs-1 text-secondary opacity-50 d-block mb-1"></i>
+                                            <span class="small fw-semibold">No Logo Uploaded</span>
+                                        </div>
+                                        <img src="" alt="Preview" class="img-fluid d-none" id="logoPreviewImg" style="max-height: 110px; max-width: 100%; object-fit: contain;">
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-image text-primary me-1"></i> Company Brand Logo</h6>
+                                <p class="text-muted small mb-2">Upload your business logo to display on all invoices, cash receipts, and bill designs. Supported formats: <strong>PNG, JPG, JPEG, WEBP, SVG</strong> (Max 3MB).</p>
+                                
+                                <div class="d-flex flex-wrap align-items-center gap-3">
+                                    <div class="flex-grow-1" style="max-width: 380px;">
+                                        <input type="file" name="logo" id="logoFileInput" class="form-control form-control-sm" accept="image/png, image/jpeg, image/webp, image/svg+xml" onchange="previewLogo(this)">
+                                    </div>
+                                    <?php if (!empty($company['logo_url'])): ?>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="removeLogoCheck" onchange="toggleRemoveLogo(this)">
+                                            <label class="form-check-label small text-danger fw-semibold" for="removeLogoCheck">
+                                                <i class="bi bi-trash3 me-1"></i> Remove Current Logo
+                                            </label>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -127,5 +164,42 @@ function toggleGstFields() {
     const hidden = document.querySelector('input[type="hidden"][name="gst_enabled"]');
     if (hidden) hidden.value = isGst ? '1' : '0';
     document.getElementById('gstFieldsDiv').style.display = isGst ? 'flex' : 'none';
+}
+
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 3 * 1024 * 1024) {
+            alert('File size exceeds 3MB limit.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImg = document.getElementById('logoPreviewImg');
+            const placeholder = document.getElementById('noLogoPlaceholder');
+            if (placeholder) placeholder.classList.add('d-none');
+            if (previewImg) {
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('d-none');
+                previewImg.style.opacity = '1';
+            }
+            const removeCheck = document.getElementById('removeLogoCheck');
+            if (removeCheck) removeCheck.checked = false;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function toggleRemoveLogo(checkbox) {
+    const previewImg = document.getElementById('logoPreviewImg');
+    const fileInput = document.getElementById('logoFileInput');
+    if (checkbox.checked) {
+        if (previewImg) previewImg.style.opacity = '0.25';
+        if (fileInput) fileInput.value = '';
+    } else {
+        if (previewImg) previewImg.style.opacity = '1';
+    }
 }
 </script>

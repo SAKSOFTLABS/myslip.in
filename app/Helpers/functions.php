@@ -233,7 +233,14 @@ function url(string $path = ''): string
  */
 function asset(string $path): string
 {
-    return url('/assets/' . ltrim($path, '/'));
+    $clean = ltrim($path, '/');
+    if (str_starts_with($clean, 'assets/')) {
+        return url('/' . $clean);
+    }
+    if (str_starts_with($clean, 'uploads/')) {
+        return url('/' . $clean);
+    }
+    return url('/assets/' . $clean);
 }
 
 /**

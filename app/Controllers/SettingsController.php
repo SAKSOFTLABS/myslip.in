@@ -67,6 +67,34 @@ class SettingsController extends Controller
         if (empty($companyName)) {
             $this->flash('danger', 'Company Name is required.');
             $this->redirect('/settings/company');
+            return;
+        }
+
+        $existingCompany = $this->companyModel->find($companyId);
+        $logoUrl = $existingCompany['logo_url'] ?? null;
+
+        // Handle Logo Removal
+        $removeLogo = $this->request->input('remove_logo');
+        if ($removeLogo === '1' || $removeLogo === 1 || $removeLogo === 'true') {
+            if (!empty($logoUrl)) {
+                $oldFile = dirname(__DIR__, 2) . '/public' . '/' . ltrim($logoUrl, '/');
+                if (file_exists($oldFile) && is_file($oldFile)) {
+                    @unlink($oldFile);
+                }
+            }
+            $logoUrl = null;
+        }
+
+        // Handle New Logo Upload
+        if (isset($_FILES['logo']) && is_array($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK && $_FILES['logo']['size'] > 0) {
+            $uploadedLogo = $this->processLogoUpload($_FILES['logo'], $companyId, $logoUrl);
+            if ($uploadedLogo['success']) {
+                $logoUrl = $uploadedLogo['path'];
+            } else {
+                $this->flash('danger', $uploadedLogo['error']);
+                $this->redirect('/settings/company');
+                return;
+            }
         }
 
         $stateCode = '27';
@@ -84,6 +112,7 @@ class SettingsController extends Controller
         $this->companyModel->update($companyId, [
             'company_name' => $companyName,
             'business_name' => $businessName ?: null,
+            'logo_url' => $logoUrl,
             'gst_enabled' => $gstEnabled,
             'gstin' => $gstin ?: null,
             'pan' => $pan ?: null,
@@ -104,13 +133,77 @@ class SettingsController extends Controller
 
         // Refresh tenant context in session
         Session::set('company_name', $companyName);
+        Session::set('company_logo', $logoUrl);
         Session::set('company_state', $state);
         Session::set('company_state_code', $stateCode);
         Session::set('gst_enabled', (bool)$gstEnabled);
 
         AuditLog::log('Company Profile Updated', 'Settings', $companyId);
-        $this->flash('success', 'Company profile and tax configurations saved successfully.');
+        $this->flash('success', 'Company profile, logo, and configurations saved successfully.');
         $this->redirect('/settings/company');
+    }
+
+    /**
+     * Process and validate uploaded company logo
+     */
+    private function processLogoUpload(array $file, int $companyId, ?string $oldLogoUrl): array
+    {
+        $allowedExts = ['png', 'jpg', 'jpeg', 'webp', 'svg'];
+        $allowedMimes = ['image/png', 'image/jpeg', 'image/pjpeg', 'image/webp', 'image/svg+xml'];
+
+        $origName = $file['name'] ?? '';
+        $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+        $fileSize = (int)($file['size'] ?? 0);
+        $maxSize = 3 * 1024 * 1024; // 3 MB
+
+        if (!in_array($ext, $allowedExts, true)) {
+            return ['success' => false, 'error' => 'Invalid file extension. Allowed formats: PNG, JPG, JPEG, WEBP, SVG.'];
+        }
+
+        if ($fileSize > $maxSize) {
+            return ['success' => false, 'error' => 'Logo image size must not exceed 3MB.'];
+        }
+
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+
+            if ($mimeType && !in_array($mimeType, $allowedMimes, true)) {
+                if ($ext === 'svg' && (str_contains($mimeType, 'xml') || str_contains($mimeType, 'svg'))) {
+                    // Valid SVG
+                } else {
+                    return ['success' => false, 'error' => 'Invalid image content type: ' . $mimeType];
+                }
+            }
+        }
+
+        $publicDir = dirname(__DIR__, 2) . '/public';
+        $uploadDir = $publicDir . '/uploads/logos';
+
+        if (!is_dir($uploadDir)) {
+            @mkdir($uploadDir, 0755, true);
+        }
+
+        // Delete old logo file if it exists
+        if (!empty($oldLogoUrl)) {
+            $oldPath = $publicDir . '/' . ltrim($oldLogoUrl, '/');
+            if (file_exists($oldPath) && is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+        }
+
+        $newFileName = 'logo_' . $companyId . '_' . time() . '.' . $ext;
+        $targetPath = $uploadDir . '/' . $newFileName;
+
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            return ['success' => false, 'error' => 'Failed to save uploaded logo to server directory. Please check file permissions.'];
+        }
+
+        return [
+            'success' => true,
+            'path' => '/uploads/logos/' . $newFileName
+        ];
     }
 
     public function invoice(): void

@@ -7,6 +7,11 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 <div class="invoice-thermal-box print-container format-thermal">
     <!-- Header -->
     <div class="text-center mb-1">
+        <?php if (!empty($company['logo_url'])): ?>
+            <div class="mb-1 text-center">
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 48px; max-width: 140px; object-fit: contain; filter: grayscale(100%);">
+            </div>
+        <?php endif; ?>
         <h6 class="fw-bold mb-0 text-uppercase"><?= e($company['company_name']) ?></h6>
         <div style="font-size: 10px;"><?= e($company['address_line1']) ?>, <?= e($company['city']) ?></div>
         <div style="font-size: 10px;">Ph: <?= e($company['mobile']) ?></div>

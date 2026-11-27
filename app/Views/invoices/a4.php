@@ -15,14 +15,19 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=120x120&
 
     <!-- Invoice Header -->
     <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom border-2">
-        <div style="max-width: 60%;">
-            <h3 class="fw-bold mb-1" style="color: <?= e($settings['primary_color'] ?? '#1e3a8a') ?>;"><?= e($company['company_name']) ?></h3>
-            <div class="small text-muted mb-1"><?= e($company['address_line1']) ?><?= $company['address_line2'] ? ', ' . e($company['address_line2']) : '' ?></div>
-            <div class="small text-muted mb-1"><?= e($company['city']) ?><?= $company['pin_code'] ? ' - ' . e($company['pin_code']) : '' ?>, <?= e($company['state']) ?> (State Code: <?= e($company['state_code']) ?>)</div>
-            <div class="small text-muted">Phone: <strong><?= e($company['mobile']) ?></strong> | Email: <?= e($company['email'] ?: 'sales@business.com') ?></div>
-            <?php if ($isGst && $company['gstin']): ?>
-                <div class="small fw-bold text-dark mt-1">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span> | PAN: <?= e($company['pan'] ?: 'N/A') ?></div>
+        <div class="d-flex align-items-start gap-3" style="max-width: 65%;">
+            <?php if (!empty($company['logo_url'])): ?>
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 75px; max-width: 150px; object-fit: contain;" class="mt-1 flex-shrink-0">
             <?php endif; ?>
+            <div>
+                <h3 class="fw-bold mb-1" style="color: <?= e($settings['primary_color'] ?? '#1e3a8a') ?>;"><?= e($company['company_name']) ?></h3>
+                <div class="small text-muted mb-1"><?= e($company['address_line1']) ?><?= $company['address_line2'] ? ', ' . e($company['address_line2']) : '' ?></div>
+                <div class="small text-muted mb-1"><?= e($company['city']) ?><?= $company['pin_code'] ? ' - ' . e($company['pin_code']) : '' ?>, <?= e($company['state']) ?> (State Code: <?= e($company['state_code']) ?>)</div>
+                <div class="small text-muted">Phone: <strong><?= e($company['mobile']) ?></strong> | Email: <?= e($company['email'] ?: 'sales@business.com') ?></div>
+                <?php if ($isGst && $company['gstin']): ?>
+                    <div class="small fw-bold text-dark mt-1">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span> | PAN: <?= e($company['pan'] ?: 'N/A') ?></div>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="text-end">
             <h4 class="fw-bold text-uppercase mb-1" style="color: <?= e($settings['primary_color'] ?? '#1e3a8a') ?>;">

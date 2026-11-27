@@ -6,10 +6,15 @@ $isGst = !empty($company['gst_enabled']) && $company['gst_enabled'] == 1;
 ?>
 <div class="invoice-minimal print-container p-5 bg-white" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #18181b;">
     <div class="d-flex justify-content-between align-items-baseline mb-5 pb-3 border-bottom border-dark border-2">
-        <div>
-            <h2 class="fw-bolder tracking-tight mb-1" style="letter-spacing: -0.5px;"><?= e($company['company_name']) ?></h2>
-            <div class="small text-muted"><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?></div>
-            <div class="small text-muted">Phone: <?= e($company['mobile'] ?? '') ?> | <?= e($company['email'] ?? '') ?></div>
+        <div class="d-flex align-items-start gap-3">
+            <?php if (!empty($company['logo_url'])): ?>
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 65px; max-width: 140px; object-fit: contain;" class="mt-1 flex-shrink-0">
+            <?php endif; ?>
+            <div>
+                <h2 class="fw-bolder tracking-tight mb-1" style="letter-spacing: -0.5px;"><?= e($company['company_name']) ?></h2>
+                <div class="small text-muted"><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?></div>
+                <div class="small text-muted">Phone: <?= e($company['mobile'] ?? '') ?> | <?= e($company['email'] ?? '') ?></div>
+            </div>
         </div>
         <div class="text-end">
             <div class="display-6 fw-bold" style="font-size: 1.8rem;"><?= $isGst ? 'INVOICE' : 'RECEIPT' ?></div>

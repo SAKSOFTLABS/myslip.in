@@ -5,12 +5,17 @@ $isGst = (bool)$company['gst_enabled'];
 <div class="invoice-a5-box print-container format-a5">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-start pb-2 mb-2 border-bottom">
-        <div>
-            <h5 class="fw-bold mb-0 text-primary"><?= e($company['company_name']) ?></h5>
-            <div class="text-muted" style="font-size: 10px;"><?= e($company['city']) ?>, <?= e($company['state']) ?> | Ph: <?= e($company['mobile']) ?></div>
-            <?php if ($isGst && $company['gstin']): ?>
-                <div class="fw-bold text-dark" style="font-size: 10px;">GSTIN: <?= e($company['gstin']) ?></div>
+        <div class="d-flex align-items-start gap-2">
+            <?php if (!empty($company['logo_url'])): ?>
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 48px; max-width: 100px; object-fit: contain;" class="mt-1 flex-shrink-0">
             <?php endif; ?>
+            <div>
+                <h5 class="fw-bold mb-0 text-primary"><?= e($company['company_name']) ?></h5>
+                <div class="text-muted" style="font-size: 10px;"><?= e($company['city']) ?>, <?= e($company['state']) ?> | Ph: <?= e($company['mobile']) ?></div>
+                <?php if ($isGst && $company['gstin']): ?>
+                    <div class="fw-bold text-dark" style="font-size: 10px;">GSTIN: <?= e($company['gstin']) ?></div>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="text-end">
             <h6 class="fw-bold text-uppercase mb-0"><?= $isGst ? 'TAX INVOICE' : 'BILL OF SUPPLY' ?></h6>

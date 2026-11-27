@@ -107,7 +107,7 @@ $isSuperAdmin = \App\Core\Session::isSuperAdmin();
         <li class="menu-item <?= ($currentUri === '/settings' || str_contains($currentUri, '/settings/invoice') || str_contains($currentUri, '/settings/users')) ? 'active' : '' ?>">
             <a href="<?= url('/settings') ?>" class="menu-link">
                 <i class="bi bi-gear"></i>
-                <span>Company & Print Setup</span>
+                <span>Company Set Up</span>
             </a>
         </li>
         <li class="menu-item <?= str_contains($currentUri, '/settings/bill-designs') ? 'active' : '' ?>">

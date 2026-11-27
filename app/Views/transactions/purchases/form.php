@@ -227,6 +227,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
             </div>
             <form id="quickVendorForm">
                 <?= csrf_field() ?>
+                <input type="hidden" name="company_id" value="<?= e($companyId ?? \App\Core\Session::getCompanyId()) ?>">
                 <div class="modal-body p-3">
                     <div id="quickVendorAlert" class="alert alert-danger d-none py-2 small"></div>
 

@@ -9,6 +9,11 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 <div class="thermal-receipt-80mm print-container bg-white text-dark" style="font-family: 'Courier New', Courier, monospace; width: 78mm; margin: 0 auto; padding: 5px; font-size: 12px; line-height: 1.25;">
     <!-- Store Header -->
     <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px;">
+        <?php if (!empty($company['logo_url'])): ?>
+            <div style="margin-bottom: 4px;">
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 50px; max-width: 150px; object-fit: contain; filter: grayscale(100%);">
+            </div>
+        <?php endif; ?>
         <div style="font-size: 16px; font-weight: bold; text-transform: uppercase;"><?= e($company['company_name']) ?></div>
         <div><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?></div>
         <div>Ph: <?= e($company['mobile'] ?? '') ?></div>

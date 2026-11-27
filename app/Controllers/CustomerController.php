@@ -40,7 +40,7 @@ class CustomerController extends Controller
     public function store(): void
     {
         $this->validateCsrf();
-        $companyId = Session::getCompanyId();
+        $companyId = Session::getCompanyId() ?: (int)$this->request->input('company_id');
         $db = Database::getInstance();
         if (!$companyId || !$db->fetchOne("SELECT id FROM `companies` WHERE id = :id LIMIT 1", ['id' => $companyId])) {
             $userId = Session::getUserId();
@@ -135,7 +135,7 @@ class CustomerController extends Controller
             return;
         }
 
-        $companyId = Session::getCompanyId();
+        $companyId = Session::getCompanyId() ?: (int)$this->request->input('company_id');
         $db = Database::getInstance();
         if (!$companyId || !$db->fetchOne("SELECT id FROM `companies` WHERE id = :id LIMIT 1", ['id' => $companyId])) {
             $userId = Session::getUserId();
@@ -296,7 +296,7 @@ class CustomerController extends Controller
 
     public function ledger(int $id): void
     {
-        $companyId = Session::getCompanyId();
+        $companyId = Session::getCompanyId() ?: (int)$this->request->input('company_id');
         $db = Database::getInstance();
         if (!$companyId || !$db->fetchOne("SELECT id FROM `companies` WHERE id = :id LIMIT 1", ['id' => $companyId])) {
             $userId = Session::getUserId();

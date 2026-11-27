@@ -22,6 +22,9 @@
 /storage/uploads/*
 !/storage/uploads/.gitkeep
 
+/public/uploads/logos/*
+!/public/uploads/logos/.gitkeep
+
 # Operating System Files
 .DS_Store
 .DS_Store?

@@ -6,6 +6,11 @@ $isGst = !empty($company['gst_enabled']) && $company['gst_enabled'] == 1;
 ?>
 <div class="invoice-retail-a5 print-container p-3 bg-white" style="font-family: 'Segoe UI', sans-serif; font-size: 12px; max-width: 148mm; margin: 0 auto; color: #1e293b;">
     <div class="text-center pb-2 mb-2 border-bottom">
+        <?php if (!empty($company['logo_url'])): ?>
+            <div class="mb-2 text-center">
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 50px; max-width: 140px; object-fit: contain;">
+            </div>
+        <?php endif; ?>
         <h4 class="fw-bold mb-0 text-dark"><?= e($company['company_name']) ?></h4>
         <div class="small text-muted"><?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?> | Ph: <?= e($company['mobile'] ?? '') ?></div>
         <?php if ($isGst && !empty($company['gstin'])): ?>

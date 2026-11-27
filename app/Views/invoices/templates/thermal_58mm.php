@@ -6,6 +6,11 @@ $isGst = !empty($company['gst_enabled']) && $company['gst_enabled'] == 1;
 ?>
 <div class="thermal-receipt-58mm print-container bg-white text-dark" style="font-family: 'Courier New', Courier, monospace; width: 56mm; margin: 0 auto; padding: 2px; font-size: 11px; line-height: 1.2;">
     <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 4px; margin-bottom: 4px;">
+        <?php if (!empty($company['logo_url'])): ?>
+            <div style="margin-bottom: 3px;">
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 40px; max-width: 120px; object-fit: contain; filter: grayscale(100%);">
+            </div>
+        <?php endif; ?>
         <div style="font-size: 13px; font-weight: bold;"><?= e($company['company_name']) ?></div>
         <div style="font-size: 10px;"><?= e($company['city'] ?? '') ?> | Ph: <?= e($company['mobile'] ?? '') ?></div>
         <?php if ($isGst && !empty($company['gstin'])): ?>

@@ -10,12 +10,19 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 <div class="invoice-modern-blue print-container p-4 bg-white" style="font-family: 'Segoe UI', system-ui, sans-serif; color: #0f172a;">
     <!-- Modern Header Banner -->
     <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-4 text-white" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);">
-        <div>
-            <h2 class="fw-bold mb-1 text-white"><?= e($company['company_name']) ?></h2>
-            <div class="small opacity-75"><?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?> | Phone: <?= e($company['mobile'] ?? '') ?></div>
-            <?php if ($isGst && !empty($company['gstin'])): ?>
-                <div class="small fw-semibold mt-1"><span class="badge bg-white text-dark">GSTIN: <?= e($company['gstin']) ?></span></div>
+        <div class="d-flex align-items-center gap-3">
+            <?php if (!empty($company['logo_url'])): ?>
+                <div class="bg-white p-1 rounded-2 shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style="min-width: 60px;">
+                    <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 55px; max-width: 140px; object-fit: contain;">
+                </div>
             <?php endif; ?>
+            <div>
+                <h2 class="fw-bold mb-1 text-white"><?= e($company['company_name']) ?></h2>
+                <div class="small opacity-75"><?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?> | Phone: <?= e($company['mobile'] ?? '') ?></div>
+                <?php if ($isGst && !empty($company['gstin'])): ?>
+                    <div class="small fw-semibold mt-1"><span class="badge bg-white text-dark">GSTIN: <?= e($company['gstin']) ?></span></div>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="text-end">
             <span class="badge bg-light text-primary fs-6 px-3 py-1 fw-bold text-uppercase"><?= $isGst ? 'TAX INVOICE' : 'BILL OF SUPPLY' ?></span>

@@ -12,14 +12,19 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 <div class="invoice-executive-gold print-container p-5 bg-white" style="font-family: 'Georgia', serif; color: #1e293b; border: 8px double #d97706;">
     <!-- Gold Header Bar -->
     <div class="d-flex justify-content-between align-items-center pb-4 mb-4 border-bottom" style="border-color: #d97706 !important;">
-        <div>
-            <div class="text-uppercase fw-bold text-muted small" style="letter-spacing: 2px;">OFFICIAL INVOICE</div>
-            <h2 class="fw-bold mb-1" style="color: <?= $goldDark ?>; letter-spacing: 0.5px;"><?= e($company['company_name']) ?></h2>
-            <div class="small text-muted" style="font-family: sans-serif;"><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?></div>
-            <div class="small text-muted" style="font-family: sans-serif;">Contact: <?= e($company['mobile'] ?? '') ?> | Email: <?= e($company['email'] ?? '') ?></div>
-            <?php if ($isGst && !empty($company['gstin'])): ?>
-                <div class="small fw-bold mt-1" style="color: <?= $goldPrimary ?>; font-family: sans-serif;">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span></div>
+        <div class="d-flex align-items-center gap-3">
+            <?php if (!empty($company['logo_url'])): ?>
+                <img src="<?= asset($company['logo_url']) ?>" alt="Logo" style="max-height: 75px; max-width: 150px; object-fit: contain; border: 1px solid #d97706; padding: 3px; border-radius: 4px;" class="flex-shrink-0">
             <?php endif; ?>
+            <div>
+                <div class="text-uppercase fw-bold text-muted small" style="letter-spacing: 2px;">OFFICIAL INVOICE</div>
+                <h2 class="fw-bold mb-1" style="color: <?= $goldDark ?>; letter-spacing: 0.5px;"><?= e($company['company_name']) ?></h2>
+                <div class="small text-muted" style="font-family: sans-serif;"><?= e($company['address_line1'] ?? '') ?>, <?= e($company['city'] ?? '') ?>, <?= e($company['state'] ?? '') ?></div>
+                <div class="small text-muted" style="font-family: sans-serif;">Contact: <?= e($company['mobile'] ?? '') ?> | Email: <?= e($company['email'] ?? '') ?></div>
+                <?php if ($isGst && !empty($company['gstin'])): ?>
+                    <div class="small fw-bold mt-1" style="color: <?= $goldPrimary ?>; font-family: sans-serif;">GSTIN: <span class="text-uppercase"><?= e($company['gstin']) ?></span></div>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="text-end">
             <div class="badge px-3 py-2 text-white fw-bold text-uppercase fs-6" style="background-color: <?= $goldDark ?>; letter-spacing: 1px;">
