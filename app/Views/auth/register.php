@@ -8,7 +8,7 @@
         <label class="form-label fw-semibold small">Full Name <span class="text-danger">*</span></label>
         <div class="input-group">
             <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-            <input type="text" name="full_name" class="form-control" placeholder="e.g. Ramesh Kumar" required autofocus>
+            <input type="text" name="full_name" class="form-control" placeholder="e.g. Ramesh Kumar" value="<?= e(old('full_name')) ?>" required autofocus>
         </div>
     </div>
 
@@ -16,7 +16,7 @@
         <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
         <div class="input-group">
             <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
-            <input type="email" name="email" class="form-control" placeholder="name@business.com" required>
+            <input type="email" name="email" class="form-control" placeholder="name@business.com" value="<?= e(old('email')) ?>" required>
         </div>
     </div>
 
@@ -24,7 +24,7 @@
         <label class="form-label fw-semibold small">Mobile Number <span class="text-danger">*</span></label>
         <div class="input-group">
             <span class="input-group-text bg-light"><i class="bi bi-phone"></i></span>
-            <input type="tel" name="mobile" class="form-control" placeholder="98XXXXXXXX" pattern="[0-9]{10}" required>
+            <input type="tel" name="mobile" class="form-control" placeholder="98XXXXXXXX" pattern="[0-9]{10}" value="<?= e(old('mobile')) ?>" required>
         </div>
     </div>
 

@@ -37,6 +37,15 @@ function env(string $key, mixed $default = null): mixed
 }
 
 /**
+ * Retrieve old input value from previous form submission
+ */
+function old(string $key, mixed $default = ''): mixed
+{
+    $old = \App\Core\Session::get('_old_input', []);
+    return $old[$key] ?? $default;
+}
+
+/**
  * Sanitize string for HTML display
  */
 function e(?string $str): string

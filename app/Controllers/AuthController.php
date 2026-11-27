@@ -88,6 +88,8 @@ class AuthController extends Controller
             $this->redirect('/dashboard');
         }
         $this->view('auth.register', ['pageTitle' => 'Create Free Account'], 'auth');
+        // Clear old inputs after displaying view so subsequent clean visits don't show old data
+        Session::remove('_old_input');
     }
 
     public function register(): void
@@ -100,31 +102,53 @@ class AuthController extends Controller
         $password = $this->request->input('password', '');
         $confirmPassword = $this->request->input('confirm_password', '');
 
+        // Preserve input values so the user does not have to retype everything
+        Session::set('_old_input', [
+            'full_name' => $fullName,
+            'email' => $email,
+            'mobile' => $mobile
+        ]);
+
         if (empty($fullName) || empty($email) || empty($mobile) || empty($password)) {
             $this->flash('danger', 'Please fill in all required fields.');
             $this->redirect('/register');
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->flash('danger', 'Please provide a valid email address.');
+            $this->flash('danger', 'Registration not possible: Invalid email address format (' . htmlspecialchars($email) . ').');
             $this->redirect('/register');
         }
 
-        if ($password !== $confirmPassword) {
-            $this->flash('danger', 'Passwords do not match.');
+        // Validate 10-digit mobile number
+        if (!preg_match('/^[0-9]{10}$/', $mobile)) {
+            $this->flash('danger', 'Registration not possible: Mobile number must be exactly 10 numeric digits.');
             $this->redirect('/register');
         }
 
         if (strlen($password) < 6) {
-            $this->flash('danger', 'Password must be at least 6 characters long.');
+            $this->flash('danger', 'Registration not possible: Password must be at least 6 characters long.');
+            $this->redirect('/register');
+        }
+
+        if ($password !== $confirmPassword) {
+            $this->flash('danger', 'Registration not possible: Passwords do not match. Please re-enter.');
             $this->redirect('/register');
         }
 
         // Check if email already registered
         if ($this->userModel->findByEmail($email)) {
-            $this->flash('danger', 'This email is already registered. Please login instead.');
-            $this->redirect('/login');
+            $this->flash('danger', 'Registration not possible: Email [' . htmlspecialchars($email) . '] is already registered. Please log in or use a different email.');
+            $this->redirect('/register');
         }
+
+        // Check if mobile number already registered
+        if ($this->userModel->findByMobile($mobile)) {
+            $this->flash('danger', 'Registration not possible: Mobile number [' . htmlspecialchars($mobile) . '] is already registered. Please log in or use a different number.');
+            $this->redirect('/register');
+        }
+
+        // All validations passed! Clear temporary old input
+        Session::remove('_old_input');
 
         $token = Security::randomToken(32);
         $userId = $this->userModel->create([

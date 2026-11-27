@@ -12,4 +12,9 @@ class User extends Model
     {
         return $this->db->fetchOne("SELECT * FROM `users` WHERE `email` = :email", ['email' => $email]);
     }
+
+    public function findByMobile(string $mobile): ?array
+    {
+        return $this->db->fetchOne("SELECT * FROM `users` WHERE `mobile` = :mobile", ['mobile' => $mobile]);
+    }
 }
