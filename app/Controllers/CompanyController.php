@@ -210,13 +210,19 @@ class CompanyController extends Controller
         $userId = Session::getUserId();
         $db = Database::getInstance();
 
-        $sql = "SELECT c.*, cu.role_id 
-                FROM `companies` c
-                JOIN `company_users` cu ON c.id = cu.company_id
-                WHERE c.id = :comp_id AND cu.user_id = :user_id AND cu.status = 'active'
-                LIMIT 1";
-        
-        $company = $db->fetchOne($sql, ['comp_id' => $companyId, 'user_id' => $userId]);
+        if (Session::isSuperAdmin()) {
+            // Super Admin can switch into / impersonate ANY tenant company
+            $company = $db->fetchOne("SELECT * FROM `companies` WHERE id = :comp_id LIMIT 1", ['comp_id' => $companyId]);
+            $roleId = 1;
+        } else {
+            $sql = "SELECT c.*, cu.role_id 
+                    FROM `companies` c
+                    JOIN `company_users` cu ON c.id = cu.company_id
+                    WHERE c.id = :comp_id AND cu.user_id = :user_id AND cu.status = 'active'
+                    LIMIT 1";
+            $company = $db->fetchOne($sql, ['comp_id' => $companyId, 'user_id' => $userId]);
+            $roleId = $company ? (int)$company['role_id'] : 1;
+        }
 
         if (!$company) {
             $this->flash('danger', 'Access denied to the requested company.');
@@ -227,7 +233,7 @@ class CompanyController extends Controller
             'comp_id' => $companyId
         ]);
 
-        Session::setTenant($company, $fy, (int)$company['role_id']);
+        Session::setTenant($company, $fy, $roleId);
         AuditLog::log('Switched Company', 'Company', $companyId);
 
         $this->flash('success', "Switched to [{$company['company_name']}].");

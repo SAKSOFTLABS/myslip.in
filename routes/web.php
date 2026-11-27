@@ -147,6 +147,7 @@ Router::get('/admin', 'SuperAdminController@dashboard', $superAdminMiddlewares);
 Router::get('/admin/dashboard', 'SuperAdminController@dashboard', $superAdminMiddlewares);
 Router::get('/admin/companies', 'SuperAdminController@companies', $superAdminMiddlewares);
 Router::post('/admin/companies/toggle/{id}', 'SuperAdminController@toggleCompanyStatus', $superAdminMiddlewares);
+Router::post('/admin/companies/delete/{id}', 'SuperAdminController@deleteCompany', $superAdminMiddlewares);
 Router::get('/admin/plans', 'SuperAdminController@plans', $superAdminMiddlewares);
 Router::post('/admin/plans/update/{id}', 'SuperAdminController@updatePlan', $superAdminMiddlewares);
 Router::get('/admin/users', 'SuperAdminController@users', $superAdminMiddlewares);

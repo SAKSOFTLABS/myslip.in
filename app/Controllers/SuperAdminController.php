@@ -83,6 +83,78 @@ class SuperAdminController extends Controller
         $this->redirect('/admin/companies');
     }
 
+    public function deleteCompany(int $id): void
+    {
+        $this->validateCsrf();
+        $db = Database::getInstance();
+
+        $company = $this->companyModel->find($id);
+        if (!$company) {
+            $this->flash('danger', 'Tenant company not found.');
+            $this->redirect('/admin/companies');
+        }
+
+        try {
+            $db->transaction(function(Database $db) use ($id, $company) {
+                // Delete in reverse dependency order to avoid foreign key errors
+                $db->execute("DELETE FROM `sale_items` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `purchase_items` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `sales_return_items` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `purchase_return_items` WHERE `company_id` = :id", ['id' => $id]);
+
+                $db->execute("DELETE FROM `sales` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `purchases` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `sales_returns` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `purchase_returns` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `receipts` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `payments` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `journals` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `ledger_entries` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `stock_movements` WHERE `company_id` = :id", ['id' => $id]);
+
+                $db->execute("DELETE FROM `items` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `item_groups` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `customers` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `vendors` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `accounts` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `numbering_series` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `invoice_settings` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `company_settings` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `company_users` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `subscriptions` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `financial_years` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `backups` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `payment_gateway_settings` WHERE `company_id` = :id", ['id' => $id]);
+                $db->execute("DELETE FROM `audit_logs` WHERE `company_id` = :id", ['id' => $id]);
+
+                // Delete company record
+                $db->execute("DELETE FROM `companies` WHERE `id` = :id", ['id' => $id]);
+
+                AuditLog::log("Tenant [{$company['company_name']}] (ID: {$id}) permanently deleted", 'SuperAdmin', $id);
+            });
+
+            // If the deleted company was currently active in session, clear it
+            if (Session::getCompanyId() === $id) {
+                Session::remove('company_id');
+                Session::remove('company_name');
+                Session::remove('gst_enabled');
+                Session::remove('currency_symbol');
+                Session::remove('company_status');
+                Session::remove('company_state');
+                Session::remove('company_state_code');
+                Session::remove('financial_year_id');
+                Session::remove('financial_year_name');
+            }
+
+            $this->flash('success', "Tenant company [{$company['company_name']}] and all associated data have been permanently deleted.");
+        } catch (\Throwable $e) {
+            error_log("Failed to delete company {$id}: " . $e->getMessage());
+            $this->flash('danger', 'Failed to delete tenant company: ' . $e->getMessage());
+        }
+
+        $this->redirect('/admin/companies');
+    }
+
     public function plans(): void
     {
         $plans = $this->planModel->all([], 'price ASC');

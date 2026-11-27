@@ -48,13 +48,19 @@
                             </td>
                             <td class="text-center">
                                 <div class="d-flex gap-1 justify-content-center">
-                                    <a href="<?= url('/company/switch/' . $c['id']) ?>" class="btn btn-sm btn-outline-primary" title="Impersonate / Switch Tenant">
+                                    <a href="<?= url('/company/switch/' . $c['id']) ?>" class="btn btn-sm btn-outline-primary" title="Impersonate / Switch Tenant (View App as this company)">
                                         <i class="bi bi-box-arrow-in-right"></i>
                                     </a>
                                     <form action="<?= url('/admin/companies/toggle/' . $c['id']) ?>" method="POST" class="d-inline">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-sm btn-outline-<?= $c['status'] === 'active' ? 'danger' : 'success' ?>" title="<?= $c['status'] === 'active' ? 'Suspend Tenant' : 'Activate Tenant' ?>" onclick="return confirm('Change tenant status?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-<?= $c['status'] === 'active' ? 'warning' : 'success' ?>" title="<?= $c['status'] === 'active' ? 'Suspend Tenant' : 'Activate Tenant' ?>" onclick="return confirm('Change tenant status?')">
                                             <i class="bi bi-<?= $c['status'] === 'active' ? 'pause-circle' : 'play-circle' ?>"></i>
+                                        </button>
+                                    </form>
+                                    <form action="<?= url('/admin/companies/delete/' . $c['id']) ?>" method="POST" class="d-inline" onsubmit="return confirm('⚠️ DANGER: PERMANENT DELETION\n\nAre you sure you want to permanently delete tenant [<?= e(addslashes($c['company_name'])) ?>]?\n\nAll invoices, items, customers, vendors, ledgers, and data for this company will be PERMANENTLY ERASED.\n\nThis action CANNOT be undone!');">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Permanently Delete Tenant">
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                     </form>
                                 </div>
