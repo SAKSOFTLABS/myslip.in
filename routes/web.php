@@ -81,6 +81,10 @@ Router::get('/sales', 'SalesController@index', $saasMiddlewares);
 Router::get('/sales/create', 'SalesController@create', $saasMiddlewares);
 Router::post('/sales/store', 'SalesController@store', $saasMiddlewares);
 Router::get('/sales/view/{id}', 'SalesController@viewInvoice', $saasMiddlewares);
+Router::get('/sales/edit/{id}', 'SalesController@edit', $saasMiddlewares);
+Router::post('/sales/update/{id}', 'SalesController@update', $saasMiddlewares);
+Router::get('/sales/delete/{id}', 'SalesController@delete', $saasMiddlewares);
+Router::post('/sales/delete/{id}', 'SalesController@delete', $saasMiddlewares);
 Router::post('/sales/cancel/{id}', 'SalesController@cancel', $saasMiddlewares);
 
 // Purchase Bills
@@ -88,6 +92,10 @@ Router::get('/purchases', 'PurchaseController@index', $saasMiddlewares);
 Router::get('/purchases/create', 'PurchaseController@create', $saasMiddlewares);
 Router::post('/purchases/store', 'PurchaseController@store', $saasMiddlewares);
 Router::get('/purchases/view/{id}', 'PurchaseController@viewBill', $saasMiddlewares);
+Router::get('/purchases/edit/{id}', 'PurchaseController@edit', $saasMiddlewares);
+Router::post('/purchases/update/{id}', 'PurchaseController@update', $saasMiddlewares);
+Router::get('/purchases/delete/{id}', 'PurchaseController@delete', $saasMiddlewares);
+Router::post('/purchases/delete/{id}', 'PurchaseController@delete', $saasMiddlewares);
 Router::post('/purchases/cancel/{id}', 'PurchaseController@cancel', $saasMiddlewares);
 
 // Returns (Credit / Debit Notes)

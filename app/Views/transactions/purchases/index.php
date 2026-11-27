@@ -86,9 +86,17 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-center">
-                                    <a href="<?= url('/purchases/view/' . $p['id']) ?>" class="btn btn-sm btn-outline-primary" title="View Bill">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="<?= url('/purchases/view/' . $p['id']) ?>" class="btn btn-outline-primary" title="View Bill">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="<?= url('/purchases/edit/' . $p['id']) ?>" class="btn btn-outline-success" title="Edit Bill">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" title="Delete Bill" onclick="confirmDeletePurchase(<?= $p['id'] ?>, '<?= e($p['purchase_number']) ?>')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -98,3 +106,40 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Purchase Bill Modal -->
+<div class="modal fade" id="deletePurchaseModal" tabindex="-1" aria-labelledby="deletePurchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white py-2">
+                <h5 class="modal-title fs-6 fw-bold" id="deletePurchaseModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Delete Purchase Bill
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="deletePurchaseForm" method="POST" action="">
+                <?= csrf_field() ?>
+                <div class="modal-body p-3">
+                    <p class="mb-2">Are you sure you want to permanently delete Purchase Bill <strong id="deletePurchaseNum" class="text-danger"></strong>?</p>
+                    <div class="alert alert-warning py-2 small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Line items, inward stock movements, and ledger postings will be permanently removed. This action cannot be undone.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-danger fw-bold px-3">
+                        <i class="bi bi-trash me-1"></i> Delete Bill
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDeletePurchase(id, purchaseNumber) {
+    document.getElementById('deletePurchaseNum').textContent = purchaseNumber;
+    document.getElementById('deletePurchaseForm').action = '<?= url('/purchases/delete/') ?>' + id;
+    new bootstrap.Modal(document.getElementById('deletePurchaseModal')).show();
+}
+</script>

@@ -8,7 +8,9 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h4 class="fw-bold mb-0 text-warning"><i class="bi bi-bag-plus me-1"></i> New Purchase Bill</h4>
+        <h4 class="fw-bold mb-0 text-warning">
+            <i class="bi bi-bag-plus me-1"></i> <?= !empty($purchase) ? 'Edit Purchase Bill: ' . e($purchase['purchase_number']) : 'New Purchase Bill' ?>
+        </h4>
         <span class="text-muted small">Record inward inventory and calculate input tax credits</span>
     </div>
     <div class="d-flex gap-2">
@@ -18,7 +20,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
     </div>
 </div>
 
-<form id="purchaseBillForm" action="<?= url('/purchases/store') ?>" method="POST">
+<form id="purchaseBillForm" action="<?= !empty($purchase) ? url('/purchases/update/' . $purchase['id']) : url('/purchases/store') ?>" method="POST">
     <?= csrf_field() ?>
 
     <div class="card-custom mb-3">
@@ -33,17 +35,18 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
                         </button>
                     </div>
                     <div class="type-select-wrapper position-relative">
-                        <input type="hidden" name="vendor_id" id="vendorSelect" value="" required>
+                        <input type="hidden" name="vendor_id" id="vendorSelect" value="<?= !empty($purchase) ? (int)$purchase['vendor_id'] : '' ?>" required>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
                             <input type="text" 
                                    id="vendorSearchInput" 
                                    class="form-control form-control-sm type-select-input" 
                                    placeholder="Type vendor name, phone, or GSTIN..." 
+                                   value="<?= !empty($purchase) ? e($purchase['vendor_name'] . ($purchase['vendor_gstin'] ? ' (' . $purchase['vendor_gstin'] . ')' : '')) : '' ?>"
                                    autocomplete="off" 
                                    autofocus 
                                    required>
-                            <button type="button" class="btn btn-outline-secondary btn-clear-selection d-none" id="btnClearVendor" title="Clear vendor">
+                            <button type="button" class="btn btn-outline-secondary btn-clear-selection <?= !empty($purchase) ? '' : 'd-none' ?>" id="btnClearVendor" title="Clear vendor">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                             <button type="button" class="btn btn-warning text-dark fw-bold px-2" data-bs-toggle="modal" data-bs-target="#quickVendorModal" title="Quick Add Vendor">
@@ -57,26 +60,27 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Purchase #</label>
-                    <input type="text" class="form-control form-control-sm bg-light fw-bold text-warning" value="<?= e($nextPurchaseNumber) ?>" readonly>
+                    <input type="text" class="form-control form-control-sm bg-light fw-bold text-warning" value="<?= !empty($purchase) ? e($purchase['purchase_number']) : e($nextPurchaseNumber) ?>" readonly>
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Supplier Invoice No</label>
-                    <input type="text" name="supplier_invoice_number" class="form-control form-control-sm" placeholder="e.g. REL-8941">
+                    <input type="text" name="supplier_invoice_number" class="form-control form-control-sm" placeholder="e.g. REL-8941" value="<?= !empty($purchase) ? e($purchase['supplier_invoice_number']) : '' ?>">
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Purchase Date <span class="text-danger">*</span></label>
-                    <input type="date" name="purchase_date" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>" required>
+                    <input type="date" name="purchase_date" class="form-control form-control-sm" value="<?= !empty($purchase) ? e($purchase['purchase_date']) : date('Y-m-d') ?>" required>
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Payment Mode</label>
                     <select name="payment_mode" id="paymentModeSelect" class="form-select form-select-sm" onchange="calculateBillingTotals()">
-                        <option value="credit">Credit (Pending)</option>
-                        <option value="cash">Cash Payment</option>
-                        <option value="bank">Bank Transfer</option>
-                        <option value="cheque">Cheque</option>
+                        <?php $pMode = $purchase['payment_mode'] ?? 'credit'; ?>
+                        <option value="credit" <?= $pMode === 'credit' ? 'selected' : '' ?>>Credit (Pending)</option>
+                        <option value="cash" <?= $pMode === 'cash' ? 'selected' : '' ?>>Cash Payment</option>
+                        <option value="bank" <?= $pMode === 'bank' ? 'selected' : '' ?>>Bank Transfer</option>
+                        <option value="cheque" <?= $pMode === 'cheque' ? 'selected' : '' ?>>Cheque</option>
                     </select>
                 </div>
             </div>
@@ -137,7 +141,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
             <div class="card-custom h-100">
                 <div class="card-body">
                     <label class="form-label fw-semibold small">Supplier Remarks / Notes</label>
-                    <textarea name="notes" class="form-control" rows="4" placeholder="Purchase notes..."></textarea>
+                    <textarea name="notes" class="form-control" rows="4" placeholder="Purchase notes..."><?= !empty($purchase) ? e($purchase['notes']) : '' ?></textarea>
                 </div>
             </div>
         </div>
@@ -180,7 +184,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
                             <tr class="bg-light">
                                 <td class="align-middle fw-semibold">Paid Amount:</td>
                                 <td class="text-end">
-                                    <input type="number" name="paid_amount" id="inputPaidAmount" class="form-control form-control-sm text-end fw-bold d-inline-block" style="max-width: 140px;" step="0.01" value="0.00" oninput="this.dataset.manual='true'; calculateBillingTotals();">
+                                    <input type="number" name="paid_amount" id="inputPaidAmount" class="form-control form-control-sm text-end fw-bold d-inline-block" style="max-width: 140px;" step="0.01" value="<?= !empty($purchase) ? (float)$purchase['paid_amount'] : '0.00' ?>" <?= !empty($purchase) ? 'data-manual="true"' : '' ?> oninput="this.dataset.manual='true'; calculateBillingTotals();">
                                 </td>
                             </tr>
                             <tr>
@@ -202,7 +206,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
 
                     <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
                         <button type="button" onclick="submitPurchaseBill()" class="btn btn-warning fw-bold px-4 shadow-sm">
-                            <i class="bi bi-check2-circle me-1"></i> Save Purchase Bill
+                            <?= !empty($purchase) ? '<i class="bi bi-check-circle me-1"></i> Update Purchase Bill' : '<i class="bi bi-check2-circle me-1"></i> Save Purchase Bill' ?>
                         </button>
                     </div>
                 </div>
@@ -648,6 +652,16 @@ if (quickProductModalEl && quickProductForm) {
     });
 }
 
+window.EXISTING_ITEMS = <?= !empty($purchase['items']) ? json_encode($purchase['items']) : '[]' ?>;
+window.SELECTED_VENDOR = <?= !empty($purchase) ? json_encode([
+    'id' => $purchase['vendor_id'],
+    'name' => $purchase['vendor_name'],
+    'state' => $purchase['vendor_state'] ?? '',
+    'state_code' => $purchase['vendor_state_code'] ?? '27',
+    'gstin' => $purchase['vendor_gstin'] ?? '',
+    'bill_outstanding' => 0
+]) : 'null' ?>;
+
 document.addEventListener('DOMContentLoaded', function() {
     initEntitySearch({
         inputId: 'vendorSearchInput',
@@ -660,6 +674,16 @@ document.addEventListener('DOMContentLoaded', function() {
         onClear: onVendorCleared
     });
 
-    addBillingRow();
+    if (window.SELECTED_VENDOR) {
+        onVendorSelected(window.SELECTED_VENDOR);
+    }
+
+    if (Array.isArray(window.EXISTING_ITEMS) && window.EXISTING_ITEMS.length > 0) {
+        window.EXISTING_ITEMS.forEach(it => {
+            addBillingRow(it);
+        });
+    } else {
+        addBillingRow();
+    }
 });
 </script>

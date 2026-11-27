@@ -8,7 +8,9 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h4 class="fw-bold mb-0 text-primary"><i class="bi bi-receipt-cutoff me-1"></i> New Sales Invoice</h4>
+        <h4 class="fw-bold mb-0 text-primary">
+            <i class="bi bi-receipt-cutoff me-1"></i> <?= !empty($sale) ? 'Edit Sales Invoice: ' . e($sale['invoice_number']) : 'New Sales Invoice' ?>
+        </h4>
         <span class="text-muted small">Place of Supply: <strong><?= e($companyState) ?></strong> (State Code: <?= e($companyStateCode) ?>)</span>
     </div>
     <div class="d-flex gap-2">
@@ -18,7 +20,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
     </div>
 </div>
 
-<form id="salesInvoiceForm" action="<?= url('/sales/store') ?>" method="POST">
+<form id="salesInvoiceForm" action="<?= !empty($sale) ? url('/sales/update/' . $sale['id']) : url('/sales/store') ?>" method="POST">
     <?= csrf_field() ?>
 
     <!-- Invoice Header Box -->
@@ -34,17 +36,18 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
                         </button>
                     </div>
                     <div class="type-select-wrapper position-relative">
-                        <input type="hidden" name="customer_id" id="customerSelect" value="" required>
+                        <input type="hidden" name="customer_id" id="customerSelect" value="<?= !empty($sale) ? (int)$sale['customer_id'] : '' ?>" required>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
                             <input type="text" 
                                    id="customerSearchInput" 
                                    class="form-control form-control-sm type-select-input" 
                                    placeholder="Type customer name, phone, or GSTIN..." 
+                                   value="<?= !empty($sale) ? e($sale['customer_name'] . ($sale['customer_mobile'] ? ' (' . $sale['customer_mobile'] . ')' : '')) : '' ?>"
                                    autocomplete="off" 
                                    autofocus 
                                    required>
-                            <button type="button" class="btn btn-outline-secondary btn-clear-selection d-none" id="btnClearCustomer" title="Clear customer">
+                            <button type="button" class="btn btn-outline-secondary btn-clear-selection <?= !empty($sale) ? '' : 'd-none' ?>" id="btnClearCustomer" title="Clear customer">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                             <button type="button" class="btn btn-primary fw-bold px-2" data-bs-toggle="modal" data-bs-target="#quickCustomerModal" title="Quick Add Customer">
@@ -59,28 +62,29 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
                 <!-- Invoice Details -->
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Invoice Number</label>
-                    <input type="text" class="form-control form-control-sm bg-light fw-bold text-primary" value="<?= e($nextInvoiceNumber) ?>" readonly>
+                    <input type="text" class="form-control form-control-sm bg-light fw-bold text-primary" value="<?= !empty($sale) ? e($sale['invoice_number']) : e($nextInvoiceNumber) ?>" readonly>
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Invoice Date <span class="text-danger">*</span></label>
-                    <input type="date" name="invoice_date" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>" required>
+                    <input type="date" name="invoice_date" class="form-control form-control-sm" value="<?= !empty($sale) ? e($sale['invoice_date']) : date('Y-m-d') ?>" required>
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Payment Mode</label>
                     <select name="payment_mode" id="paymentModeSelect" class="form-select form-select-sm" onchange="calculateBillingTotals()">
-                        <option value="credit">Credit (Pending)</option>
-                        <option value="cash" selected>Cash Payment</option>
-                        <option value="upi">UPI / Online QR</option>
-                        <option value="bank">Bank Transfer</option>
-                        <option value="cheque">Cheque</option>
+                        <?php $pMode = $sale['payment_mode'] ?? 'cash'; ?>
+                        <option value="credit" <?= $pMode === 'credit' ? 'selected' : '' ?>>Credit (Pending)</option>
+                        <option value="cash" <?= $pMode === 'cash' ? 'selected' : '' ?>>Cash Payment</option>
+                        <option value="upi" <?= $pMode === 'upi' ? 'selected' : '' ?>>UPI / Online QR</option>
+                        <option value="bank" <?= $pMode === 'bank' ? 'selected' : '' ?>>Bank Transfer</option>
+                        <option value="cheque" <?= $pMode === 'cheque' ? 'selected' : '' ?>>Cheque</option>
                     </select>
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label fw-semibold small">Due Date</label>
-                    <input type="date" name="due_date" class="form-control form-control-sm" value="<?= date('Y-m-d', strtotime('+15 days')) ?>">
+                    <input type="date" name="due_date" class="form-control form-control-sm" value="<?= !empty($sale['due_date']) ? e($sale['due_date']) : date('Y-m-d', strtotime('+15 days')) ?>">
                 </div>
             </div>
 
@@ -142,19 +146,20 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Customer Notes / Payment Terms</label>
-                        <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for your business..."></textarea>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Thank you for your business..."><?= !empty($sale) ? e($sale['notes']) : '' ?></textarea>
                     </div>
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Reference / PO Number</label>
-                            <input type="text" name="reference_no" class="form-control form-control-sm" placeholder="Ref #">
+                            <input type="text" name="reference_no" class="form-control form-control-sm" placeholder="Ref #" value="<?= !empty($sale) ? e($sale['reference_no']) : '' ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Sales Type</label>
                             <select name="sales_type" class="form-select form-select-sm">
-                                <option value="tax_invoice">Tax Invoice</option>
-                                <option value="bill_of_supply">Bill of Supply</option>
-                                <option value="retail_invoice">Retail Invoice</option>
+                                <?php $sType = $sale['sales_type'] ?? 'tax_invoice'; ?>
+                                <option value="tax_invoice" <?= $sType === 'tax_invoice' ? 'selected' : '' ?>>Tax Invoice</option>
+                                <option value="bill_of_supply" <?= $sType === 'bill_of_supply' ? 'selected' : '' ?>>Bill of Supply</option>
+                                <option value="retail_invoice" <?= $sType === 'retail_invoice' ? 'selected' : '' ?>>Retail Invoice</option>
                             </select>
                         </div>
                     </div>
@@ -200,7 +205,7 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
                             <tr class="bg-light">
                                 <td class="align-middle fw-semibold">Paid Amount:</td>
                                 <td class="text-end">
-                                    <input type="number" name="paid_amount" id="inputPaidAmount" class="form-control form-control-sm text-end fw-bold d-inline-block" style="max-width: 140px;" step="0.01" value="0.00" oninput="this.dataset.manual='true'; calculateBillingTotals();">
+                                    <input type="number" name="paid_amount" id="inputPaidAmount" class="form-control form-control-sm text-end fw-bold d-inline-block" style="max-width: 140px;" step="0.01" value="<?= !empty($sale) ? (float)$sale['paid_amount'] : '0.00' ?>" <?= !empty($sale) ? 'data-manual="true"' : '' ?> oninput="this.dataset.manual='true'; calculateBillingTotals();">
                                 </td>
                             </tr>
                             <tr>
@@ -224,10 +229,10 @@ $availableGroups = $groups ?? (new \App\Models\ItemGroup())->all([], 'name ASC')
 
                     <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
                         <button type="button" onclick="submitSalesInvoice('save')" class="btn btn-outline-primary fw-bold px-3">
-                            <i class="bi bi-save me-1"></i> Save Invoice (F8)
+                            <?= !empty($sale) ? '<i class="bi bi-check-circle me-1"></i> Update Invoice' : '<i class="bi bi-save me-1"></i> Save Invoice (F8)' ?>
                         </button>
                         <button type="button" onclick="submitSalesInvoice('save_and_print')" class="btn btn-primary fw-bold px-4 shadow-sm">
-                            <i class="bi bi-printer-fill me-1"></i> Save & Print (F9)
+                            <?= !empty($sale) ? '<i class="bi bi-printer-fill me-1"></i> Update & Print' : '<i class="bi bi-printer-fill me-1"></i> Save & Print (F9)' ?>
                         </button>
                     </div>
                 </div>
@@ -689,6 +694,17 @@ if (quickProductModalEl && quickProductForm) {
     });
 }
 
+window.EXISTING_ITEMS = <?= !empty($sale['items']) ? json_encode($sale['items']) : '[]' ?>;
+window.SELECTED_CUSTOMER = <?= !empty($sale) ? json_encode([
+    'id' => $sale['customer_id'],
+    'name' => $sale['customer_name'],
+    'mobile' => $sale['customer_mobile'] ?? '',
+    'state' => $sale['customer_state'] ?? '',
+    'state_code' => $sale['customer_state_code'] ?? '27',
+    'gstin' => $sale['customer_gstin'] ?? '',
+    'invoice_outstanding' => 0
+]) : 'null' ?>;
+
 // Initialize customer type & select and 1 clean row on load
 document.addEventListener('DOMContentLoaded', function() {
     initEntitySearch({
@@ -702,6 +718,16 @@ document.addEventListener('DOMContentLoaded', function() {
         onClear: onCustomerCleared
     });
 
-    addBillingRow();
+    if (window.SELECTED_CUSTOMER) {
+        onCustomerSelected(window.SELECTED_CUSTOMER);
+    }
+
+    if (Array.isArray(window.EXISTING_ITEMS) && window.EXISTING_ITEMS.length > 0) {
+        window.EXISTING_ITEMS.forEach(it => {
+            addBillingRow(it);
+        });
+    } else {
+        addBillingRow();
+    }
 });
 </script>

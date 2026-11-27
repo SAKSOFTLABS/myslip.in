@@ -15,11 +15,17 @@
         <a href="<?= url('/purchases') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Bills
         </a>
+        <a href="<?= url('/purchases/edit/' . $purchase['id']) ?>" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i> Edit Bill
+        </a>
         <?php if ($purchase['status'] === 'active'): ?>
-            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelPurchaseModal">
-                <i class="bi bi-x-circle me-1"></i> Cancel Purchase Bill
+            <button type="button" class="btn btn-outline-warning text-dark" data-bs-toggle="modal" data-bs-target="#cancelPurchaseModal">
+                <i class="bi bi-x-circle me-1"></i> Cancel Bill
             </button>
         <?php endif; ?>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletePurchaseModal">
+            <i class="bi bi-trash me-1"></i> Delete Bill
+        </button>
     </div>
 </div>
 
@@ -147,3 +153,30 @@
     </div>
 </div>
 <?php endif; ?>
+
+<!-- Delete Purchase Bill Modal -->
+<div class="modal fade" id="deletePurchaseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?= url('/purchases/delete/' . $purchase['id']) ?>" method="POST">
+                <?= csrf_field() ?>
+                <div class="modal-header bg-danger text-white py-2">
+                    <h5 class="modal-title fs-6 fw-bold"><i class="bi bi-trash-fill me-2"></i> Delete Purchase Bill</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <p class="mb-2">Are you sure you want to permanently delete Purchase Bill <strong class="text-danger"><?= e($purchase['purchase_number']) ?></strong>?</p>
+                    <div class="alert alert-warning py-2 small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> Line items, inward stock movements, and ledger postings will be permanently removed. This action cannot be undone.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-danger fw-bold px-3">
+                        <i class="bi bi-trash me-1"></i> Delete Bill
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

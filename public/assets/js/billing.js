@@ -497,20 +497,42 @@ function clearItemRowSelection(rowId) {
 
 function populateRowWithItem(rowId, itemData) {
     if (!itemData) return;
-    if (itemData.id) {
-        selectRowItem(rowId, itemData.id);
+    const itemId = itemData.item_id || itemData.id;
+    if (itemId) {
+        selectRowItem(rowId, itemId);
     }
     const row = document.getElementById(`row_${rowId}`);
     if (!row) return;
 
-    if (itemData.quantity !== undefined) {
-        row.querySelector('.item-qty').value = itemData.quantity;
+    if (itemId && row.querySelector('.item-id-input')) {
+        row.querySelector('.item-id-input').value = itemId;
     }
-    if (itemData.rate !== undefined) {
-        row.querySelector('.item-rate').value = itemData.rate;
+    if (itemData.item_name) {
+        if (row.querySelector('.item-name-input')) row.querySelector('.item-name-input').value = itemData.item_name;
+        if (row.querySelector('.item-search-input')) row.querySelector('.item-search-input').value = itemData.item_name;
+        if (row.querySelector('.btn-clear-row-item')) row.querySelector('.btn-clear-row-item').classList.remove('d-none');
     }
-    if (itemData.discount_percent !== undefined) {
-        row.querySelector('.item-disc-pct').value = itemData.discount_percent;
+    if (itemData.barcode && row.querySelector('.item-barcode-input')) {
+        row.querySelector('.item-barcode-input').value = itemData.barcode;
+    }
+    if (itemData.hsn_sac !== undefined && row.querySelector('.item-hsn')) {
+        row.querySelector('.item-hsn').value = itemData.hsn_sac || '';
+    }
+    if (itemData.unit_name) {
+        if (row.querySelector('.item-unit-label')) row.querySelector('.item-unit-label').innerText = itemData.unit_name;
+        if (row.querySelector('.item-unit-input')) row.querySelector('.item-unit-input').value = itemData.unit_name;
+    }
+    if (itemData.quantity !== undefined && row.querySelector('.item-qty')) {
+        row.querySelector('.item-qty').value = parseFloat(itemData.quantity);
+    }
+    if (itemData.rate !== undefined && row.querySelector('.item-rate')) {
+        row.querySelector('.item-rate').value = parseFloat(itemData.rate).toFixed(2);
+    }
+    if (itemData.discount_percent !== undefined && row.querySelector('.item-disc-pct')) {
+        row.querySelector('.item-disc-pct').value = parseFloat(itemData.discount_percent);
+    }
+    if (itemData.gst_rate !== undefined && row.querySelector('.item-gst-rate')) {
+        row.querySelector('.item-gst-rate').value = parseFloat(itemData.gst_rate);
     }
     calculateBillingTotals();
 }
