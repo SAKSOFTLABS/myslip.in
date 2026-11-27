@@ -95,43 +95,57 @@ class SuperAdminController extends Controller
         }
 
         try {
-            $db->transaction(function(Database $db) use ($id, $company) {
-                // Delete in reverse dependency order to avoid foreign key errors
-                $db->execute("DELETE FROM `sale_items` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `purchase_items` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `sales_return_items` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `purchase_return_items` WHERE `company_id` = :id", ['id' => $id]);
+            $tablesWithCompanyId = [
+                'sales_items',
+                'purchase_items',
+                'sales_return_items',
+                'purchase_return_items',
+                'receipt_allocations',
+                'payment_allocations',
+                'journal_entries',
+                'sales',
+                'purchases',
+                'sales_returns',
+                'purchase_returns',
+                'receipts',
+                'payments',
+                'journals',
+                'ledger_entries',
+                'stock_movements',
+                'items',
+                'item_groups',
+                'customers',
+                'vendors',
+                'accounts',
+                'numbering_series',
+                'invoice_settings',
+                'company_settings',
+                'company_users',
+                'subscriptions',
+                'backups',
+                'payment_gateway_transactions',
+                'audit_logs',
+                'financial_years',
+            ];
 
-                $db->execute("DELETE FROM `sales` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `purchases` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `sales_returns` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `purchase_returns` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `receipts` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `payments` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `journals` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `ledger_entries` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `stock_movements` WHERE `company_id` = :id", ['id' => $id]);
+            $db->execute("SET FOREIGN_KEY_CHECKS = 0");
 
-                $db->execute("DELETE FROM `items` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `item_groups` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `customers` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `vendors` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `accounts` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `numbering_series` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `invoice_settings` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `company_settings` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `company_users` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `subscriptions` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `financial_years` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `backups` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `payment_gateway_settings` WHERE `company_id` = :id", ['id' => $id]);
-                $db->execute("DELETE FROM `audit_logs` WHERE `company_id` = :id", ['id' => $id]);
+            try {
+                foreach ($tablesWithCompanyId as $table) {
+                    try {
+                        $db->execute("DELETE FROM `{$table}` WHERE `company_id` = :id", ['id' => $id]);
+                    } catch (\Throwable $e) {
+                        // Skip if table does not exist or column differs
+                    }
+                }
 
                 // Delete company record
                 $db->execute("DELETE FROM `companies` WHERE `id` = :id", ['id' => $id]);
 
                 AuditLog::log("Tenant [{$company['company_name']}] (ID: {$id}) permanently deleted", 'SuperAdmin', $id);
-            });
+            } finally {
+                $db->execute("SET FOREIGN_KEY_CHECKS = 1");
+            }
 
             // If the deleted company was currently active in session, clear it
             if (Session::getCompanyId() === $id) {

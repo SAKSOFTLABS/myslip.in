@@ -18,7 +18,7 @@ if (!empty($flashes)):
             default => 'bi-info-circle-fill'
         };
         $title = match($type) {
-            'error', 'danger' => 'Registration / Validation Error',
+            'error', 'danger' => 'Error',
             'success' => 'Success',
             'warning' => 'Attention',
             default => 'Notice'
