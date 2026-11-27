@@ -32,7 +32,7 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
             </div>
             <div class="fs-5 fw-bold mt-2" style="color: <?= $goldPrimary ?>; font-family: sans-serif;"># <?= e($sale['invoice_number']) ?></div>
             <div class="small text-muted" style="font-family: sans-serif;">Dated: <strong><?= formatDate($sale['invoice_date']) ?></strong></div>
-            <?php if (!empty($sale['due_date'])): ?>
+            <?php if (!empty($sale['due_date']) && (float)($sale['balance_amount'] ?? 0) > 0): ?>
                 <div class="small text-muted" style="font-family: sans-serif;">Payment Due: <?= formatDate($sale['due_date']) ?></div>
             <?php endif; ?>
         </div>
@@ -136,7 +136,9 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
                     <span class="fs-5 fw-bold"><?= formatCurrency($sale['grand_total']) ?></span>
                 </div>
                 <div class="d-flex justify-content-between small text-success fw-semibold"><span>Remitted / Paid:</span> <span><?= formatCurrency($sale['paid_amount']) ?></span></div>
-                <div class="d-flex justify-content-between small text-danger fw-semibold"><span>Outstanding:</span> <span><?= formatCurrency($sale['balance_amount']) ?></span></div>
+                <?php if ((float)($sale['balance_amount'] ?? 0) > 0): ?>
+                    <div class="d-flex justify-content-between small text-danger fw-semibold"><span>Outstanding:</span> <span><?= formatCurrency($sale['balance_amount']) ?></span></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

@@ -105,7 +105,9 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 
         <div class="d-flex justify-content-between mt-1">
             <span>Paid: ₹<?= number_format($sale['paid_amount'], 2) ?></span>
-            <span>Due: ₹<?= number_format($sale['balance_amount'], 2) ?></span>
+            <?php if ((float)($sale['balance_amount'] ?? 0) > 0): ?>
+                <span>Due: ₹<?= number_format($sale['balance_amount'], 2) ?></span>
+            <?php endif; ?>
         </div>
     </div>
 

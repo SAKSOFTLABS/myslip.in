@@ -67,7 +67,9 @@ $isGst = !empty($company['gst_enabled']) && $company['gst_enabled'] == 1;
         </div>
         <div class="d-flex justify-content-between small text-muted">
             <span>Paid: <?= formatCurrency($sale['paid_amount']) ?></span>
-            <span>Bal: <?= formatCurrency($sale['balance_amount']) ?></span>
+            <?php if ((float)($sale['balance_amount'] ?? 0) > 0): ?>
+                <span>Bal: <?= formatCurrency($sale['balance_amount']) ?></span>
+            <?php endif; ?>
         </div>
     </div>
 

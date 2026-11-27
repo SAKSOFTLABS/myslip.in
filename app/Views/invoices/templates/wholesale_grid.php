@@ -41,7 +41,9 @@ $headerBg = '#334155';
                     <tr><td class="p-0 fw-bold">Invoice Number:</td><td class="p-0 text-end fw-bold"><?= e($sale['invoice_number']) ?></td></tr>
                     <tr><td class="p-0">Invoice Date:</td><td class="p-0 text-end"><?= formatDate($sale['invoice_date']) ?></td></tr>
                     <tr><td class="p-0">Payment Terms:</td><td class="p-0 text-end text-uppercase"><?= e($sale['payment_mode']) ?></td></tr>
-                    <tr><td class="p-0">Due Date:</td><td class="p-0 text-end"><?= formatDate($sale['due_date'] ?? $sale['invoice_date']) ?></td></tr>
+                    <?php if (!empty($sale['due_date']) && (float)($sale['balance_amount'] ?? 0) > 0): ?>
+                        <tr><td class="p-0">Due Date:</td><td class="p-0 text-end"><?= formatDate($sale['due_date']) ?></td></tr>
+                    <?php endif; ?>
                     <tr><td class="p-0">Transport / LR No:</td><td class="p-0 text-end"><?= e($sale['reference_no'] ?: 'Direct Handover') ?></td></tr>
                     <tr><td class="p-0">Place of Supply:</td><td class="p-0 text-end"><?= e($sale['place_of_supply']) ?></td></tr>
                 </table>
@@ -116,7 +118,9 @@ $headerBg = '#334155';
                 </div>
                 <div class="d-flex justify-content-between text-muted">
                     <span>Paid: <?= formatCurrency($sale['paid_amount']) ?></span>
-                    <span>Bal: <?= formatCurrency($sale['balance_amount']) ?></span>
+                    <?php if ((float)($sale['balance_amount'] ?? 0) > 0): ?>
+                        <span>Bal: <?= formatCurrency($sale['balance_amount']) ?></span>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

@@ -36,7 +36,7 @@ $isGst = !empty($company['gst_enabled']) && $company['gst_enabled'] == 1;
             <div class="text-uppercase text-muted fw-bold" style="font-size: 10px; letter-spacing: 1px;">PAYMENT DETAILS</div>
             <div class="small mt-1">Status: <strong class="text-uppercase"><?= e($sale['payment_status']) ?></strong></div>
             <div class="small">Mode: <?= e($sale['payment_mode']) ?></div>
-            <?php if (!empty($sale['due_date'])): ?>
+            <?php if (!empty($sale['due_date']) && (float)($sale['balance_amount'] ?? 0) > 0): ?>
                 <div class="small text-muted">Due: <?= formatDate($sale['due_date']) ?></div>
             <?php endif; ?>
         </div>

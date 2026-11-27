@@ -140,7 +140,7 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=120x120&
                 <div class="small text-muted">Original for Recipient</div>
                 <div class="fw-bold fs-6 text-dark mt-2">Invoice #: <?= e($sale['invoice_number']) ?></div>
                 <div class="small text-dark">Date: <strong><?= formatDate($sale['invoice_date']) ?></strong></div>
-                <?php if ($sale['due_date']): ?>
+                <?php if (!empty($sale['due_date']) && (float)($sale['balance_amount'] ?? 0) > 0): ?>
                     <div class="small text-muted">Due Date: <?= formatDate($sale['due_date']) ?></div>
                 <?php endif; ?>
             </div>
@@ -298,10 +298,12 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=120x120&
                             <td class="small text-muted">Paid Amount:</td>
                             <td class="text-end text-success fw-bold"><?= formatCurrency($sale['paid_amount']) ?></td>
                         </tr>
+                        <?php if ((float)($sale['balance_amount'] ?? 0) > 0): ?>
                         <tr>
                             <td class="small text-muted">Balance Due:</td>
                             <td class="text-end text-danger fw-bold"><?= formatCurrency($sale['balance_amount']) ?></td>
                         </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

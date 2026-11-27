@@ -49,7 +49,7 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
                 <span class="badge bg-secondary-subtle text-secondary mb-2 text-uppercase fw-semibold" style="font-size: 11px;">Invoice Details</span>
                 <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Payment Mode:</span> <strong class="text-uppercase"><?= e($sale['payment_mode']) ?></strong></div>
                 <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Place of Supply:</span> <strong><?= e($sale['place_of_supply']) ?></strong></div>
-                <?php if (!empty($sale['due_date'])): ?>
+                <?php if (!empty($sale['due_date']) && (float)($sale['balance_amount'] ?? 0) > 0): ?>
                     <div class="small d-flex justify-content-between mb-1"><span class="text-muted">Due Date:</span> <strong><?= formatDate($sale['due_date']) ?></strong></div>
                 <?php endif; ?>
                 <?php if (!empty($sale['reference_no'])): ?>
@@ -138,7 +138,9 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
                     <span class="fs-5 fw-bold"><?= formatCurrency($sale['grand_total']) ?></span>
                 </div>
                 <div class="d-flex justify-content-between small text-success fw-semibold mb-1"><span>Paid:</span> <span><?= formatCurrency($sale['paid_amount']) ?></span></div>
-                <div class="d-flex justify-content-between small text-danger fw-semibold"><span>Balance Due:</span> <span><?= formatCurrency($sale['balance_amount']) ?></span></div>
+                <?php if ((float)($sale['balance_amount'] ?? 0) > 0): ?>
+                    <div class="d-flex justify-content-between small text-danger fw-semibold"><span>Balance Due:</span> <span><?= formatCurrency($sale['balance_amount']) ?></span></div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
