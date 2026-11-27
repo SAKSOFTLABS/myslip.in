@@ -267,7 +267,7 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
                             <label class="form-label fw-semibold small">State <span class="text-danger">*</span></label>
                             <select name="state" id="quickCustomerState" class="form-select form-select-sm" required>
                                 <?php foreach (INDIAN_STATES as $code => $stName): ?>
-                                    <option value="<?= e($stName) ?>" <?= (strcasecmp($stName, Session::get('company_state', 'Maharashtra')) === 0) ? 'selected' : '' ?>>
+                                    <option value="<?= e($stName) ?>" <?= (strcasecmp($stName, $companyState) === 0) ? 'selected' : '' ?>>
                                         <?= e($stName) ?> (<?= $code ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -462,8 +462,12 @@ if (quickCustomerForm) {
             onCustomerSelected(customer);
 
             // Hide modal & reset form
-            const modalInstance = bootstrap.Modal.getInstance(quickCustomerModalEl) || new bootstrap.Modal(quickCustomerModalEl);
-            modalInstance.hide();
+            const modalInstance = window.bootstrap?.Modal?.getInstance(quickCustomerModalEl) || (window.bootstrap?.Modal ? new bootstrap.Modal(quickCustomerModalEl) : null);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                quickCustomerModalEl.querySelector('[data-bs-dismiss="modal"]')?.click();
+            }
             quickCustomerForm.reset();
 
             // Notify user

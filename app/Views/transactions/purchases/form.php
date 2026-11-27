@@ -1,5 +1,6 @@
 <?php
 $gstEnabled = \App\Core\Session::get('gst_enabled', true);
+$companyState = \App\Core\Session::get('company_state', 'Maharashtra');
 $companyStateCode = \App\Core\Session::get('company_state_code', '27');
 ?>
 
@@ -241,7 +242,7 @@ $companyStateCode = \App\Core\Session::get('company_state_code', '27');
                             <label class="form-label fw-semibold small">State <span class="text-danger">*</span></label>
                             <select name="state" id="quickVendorState" class="form-select form-select-sm" required>
                                 <?php foreach (INDIAN_STATES as $code => $stName): ?>
-                                    <option value="<?= e($stName) ?>" <?= (strcasecmp($stName, Session::get('company_state', 'Maharashtra')) === 0) ? 'selected' : '' ?>>
+                                    <option value="<?= e($stName) ?>" <?= (strcasecmp($stName, $companyState) === 0) ? 'selected' : '' ?>>
                                         <?= e($stName) ?> (<?= $code ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -420,8 +421,12 @@ if (quickVendorForm) {
             onVendorSelected(vendor);
 
             // Hide modal & reset form
-            const modalInstance = bootstrap.Modal.getInstance(quickVendorModalEl) || new bootstrap.Modal(quickVendorModalEl);
-            modalInstance.hide();
+            const modalInstance = window.bootstrap?.Modal?.getInstance(quickVendorModalEl) || (window.bootstrap?.Modal ? new bootstrap.Modal(quickVendorModalEl) : null);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                quickVendorModalEl.querySelector('[data-bs-dismiss="modal"]')?.click();
+            }
             quickVendorForm.reset();
 
             // Notify user
