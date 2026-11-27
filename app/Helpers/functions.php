@@ -107,10 +107,50 @@ function formatQty(float|int|string|null $qty, int $decimals = 2): string
  */
 function formatDate(?string $date, string $format = 'd-m-Y'): string
 {
-    if (!$date || $date === '0000-00-00') {
+    if (!$date || $date === '0000-00-00' || $date === '0000-00-00 00:00:00') {
         return '-';
     }
-    return date($format, strtotime($date));
+    $ts = strtotime($date);
+    return $ts ? date($format, $ts) : '-';
+}
+
+/**
+ * Format datetime in Indian standard format (d-m-Y H:i)
+ */
+function formatDateTime(?string $dateTime, string $format = 'd-m-Y H:i'): string
+{
+    if (!$dateTime || $dateTime === '0000-00-00 00:00:00' || $dateTime === '0000-00-00') {
+        return '-';
+    }
+    $ts = strtotime($dateTime);
+    return $ts ? date($format, $ts) : '-';
+}
+
+/**
+ * Parse any date string (d-m-Y, d/m/Y, Y-m-d) into MySQL standard format (Y-m-d)
+ */
+function parseDateToDb(?string $dateStr): ?string
+{
+    if (!$dateStr) {
+        return null;
+    }
+    $dateStr = trim($dateStr);
+    if ($dateStr === '' || $dateStr === '0000-00-00' || $dateStr === '0000-00-00 00:00:00') {
+        return null;
+    }
+
+    // dd-mm-yyyy or dd/mm/yyyy or dd.mm.yyyy
+    if (preg_match('/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/', $dateStr, $m)) {
+        return sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[2], (int)$m[1]);
+    }
+
+    // yyyy-mm-dd or yyyy/mm/dd
+    if (preg_match('/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/', $dateStr, $m)) {
+        return sprintf('%04d-%02d-%02d', (int)$m[1], (int)$m[2], (int)$m[3]);
+    }
+
+    $ts = strtotime($dateStr);
+    return $ts ? date('Y-m-d', $ts) : null;
 }
 
 /**

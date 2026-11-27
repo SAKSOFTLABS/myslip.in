@@ -38,8 +38,8 @@ class PurchaseController extends Controller
         $search = $this->request->input('search');
 
         $purchases = $this->purchaseModel->getPurchaseList([
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'start_date' => parseDateToDb($startDate),
+            'end_date' => parseDateToDb($endDate),
             'search' => $search
         ]);
 
@@ -87,8 +87,8 @@ class PurchaseController extends Controller
 
         $vendorId = (int)$this->request->input('vendor_id');
         $supplierInvoiceNo = trim($this->request->input('supplier_invoice_number', ''));
-        $purchaseDate = $this->request->input('purchase_date', date('Y-m-d'));
-        $dueDate = $this->request->input('due_date') ?: null;
+        $purchaseDate = parseDateToDb($this->request->input('purchase_date')) ?: date('Y-m-d');
+        $dueDate = parseDateToDb($this->request->input('due_date'));
         $paymentMode = $this->request->input('payment_mode', 'credit');
         $notes = trim($this->request->input('notes', ''));
 
@@ -402,8 +402,8 @@ class PurchaseController extends Controller
 
         $vendorId = (int)$this->request->input('vendor_id');
         $supplierInvoiceNo = trim($this->request->input('supplier_invoice_number', ''));
-        $purchaseDate = $this->request->input('purchase_date', date('Y-m-d'));
-        $dueDate = $this->request->input('due_date') ?: null;
+        $purchaseDate = parseDateToDb($this->request->input('purchase_date')) ?: date('Y-m-d');
+        $dueDate = parseDateToDb($this->request->input('due_date'));
         $paymentMode = $this->request->input('payment_mode', 'credit');
         $notes = trim($this->request->input('notes', ''));
 

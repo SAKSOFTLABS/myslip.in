@@ -26,7 +26,7 @@
                     <?php else: ?>
                         <?php foreach ($logs as $l): ?>
                             <tr>
-                                <td class="small text-muted"><?= e($l['created_at']) ?></td>
+                                <td class="small text-muted"><?= formatDateTime($l['created_at']) ?></td>
                                 <td><strong><?= e($l['user_name'] ?: 'System / Guest') ?></strong></td>
                                 <td><?= e($l['company_name'] ?: 'System Wide') ?></td>
                                 <td><span class="badge bg-primary-subtle text-primary"><?= e($l['action']) ?></span></td>

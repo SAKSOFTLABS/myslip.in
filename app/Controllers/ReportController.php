@@ -24,8 +24,8 @@ class ReportController extends Controller
         $companyId = Session::getCompanyId();
         $db = Database::getInstance();
 
-        $startDate = $this->request->input('start_date', date('Y-m-01'));
-        $endDate = $this->request->input('end_date', date('Y-m-t'));
+        $startDate = parseDateToDb($this->request->input('start_date')) ?: date('Y-m-01');
+        $endDate = parseDateToDb($this->request->input('end_date')) ?: date('Y-m-t');
         $customerId = $this->request->input('customer_id');
 
         $sql = "SELECT s.*, c.mobile as customer_phone 
@@ -49,7 +49,7 @@ class ReportController extends Controller
             foreach ($rows as $r) {
                 $csvRows[] = [
                     $r['invoice_number'],
-                    $r['invoice_date'],
+                    formatDate($r['invoice_date']),
                     $r['customer_name'],
                     $r['taxable_amount'],
                     $r['total_tax_amount'],
@@ -81,8 +81,8 @@ class ReportController extends Controller
         $companyId = Session::getCompanyId();
         $db = Database::getInstance();
 
-        $startDate = $this->request->input('start_date', date('Y-m-01'));
-        $endDate = $this->request->input('end_date', date('Y-m-t'));
+        $startDate = parseDateToDb($this->request->input('start_date')) ?: date('Y-m-01');
+        $endDate = parseDateToDb($this->request->input('end_date')) ?: date('Y-m-t');
 
         // Find cash account
         $cashAcc = $db->fetchOne("SELECT id, opening_balance, balance_type FROM `accounts` WHERE `company_id` = :comp_id AND `is_cash` = 1 LIMIT 1", ['comp_id' => $companyId]);
@@ -187,8 +187,8 @@ class ReportController extends Controller
         $companyId = Session::getCompanyId();
         $db = Database::getInstance();
 
-        $startDate = $this->request->input('start_date', date('Y-m-01'));
-        $endDate = $this->request->input('end_date', date('Y-m-t'));
+        $startDate = parseDateToDb($this->request->input('start_date')) ?: date('Y-m-01');
+        $endDate = parseDateToDb($this->request->input('end_date')) ?: date('Y-m-t');
 
         $sql = "SELECT i.name as item_name, i.code as item_code, u.short_name as unit_name,
                        SUM(si.quantity) as total_qty_sold,

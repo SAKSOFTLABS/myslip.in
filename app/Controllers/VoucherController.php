@@ -43,8 +43,8 @@ class VoucherController extends Controller
         $startDate = $this->request->input('start_date');
         $endDate = $this->request->input('end_date');
         $receipts = $this->receiptModel->getReceiptList([
-            'start_date' => $startDate,
-            'end_date' => $endDate
+            'start_date' => parseDateToDb($startDate),
+            'end_date' => parseDateToDb($endDate)
         ]);
 
         $this->view('transactions.vouchers.receipts_index', [
@@ -77,7 +77,7 @@ class VoucherController extends Controller
 
         $customerId = (int)$this->request->input('customer_id');
         $depositAccountId = (int)$this->request->input('deposit_account_id');
-        $receiptDate = $this->request->input('receipt_date', date('Y-m-d'));
+        $receiptDate = parseDateToDb($this->request->input('receipt_date')) ?: date('Y-m-d');
         $amount = (float)$this->request->input('amount', 0.00);
         $paymentMode = $this->request->input('payment_mode', 'cash');
         $chequeNo = trim($this->request->input('cheque_no', ''));
@@ -151,8 +151,8 @@ class VoucherController extends Controller
         $startDate = $this->request->input('start_date');
         $endDate = $this->request->input('end_date');
         $payments = $this->paymentModel->getPaymentList([
-            'start_date' => $startDate,
-            'end_date' => $endDate
+            'start_date' => parseDateToDb($startDate),
+            'end_date' => parseDateToDb($endDate)
         ]);
 
         $this->view('transactions.vouchers.payments_index', [
@@ -188,7 +188,7 @@ class VoucherController extends Controller
         $vendorId = $this->request->input('vendor_id') ? (int)$this->request->input('vendor_id') : null;
         $expenseAccountId = $this->request->input('expense_account_id') ? (int)$this->request->input('expense_account_id') : null;
         $paidFromAccountId = (int)$this->request->input('paid_from_account_id');
-        $paymentDate = $this->request->input('payment_date', date('Y-m-d'));
+        $paymentDate = parseDateToDb($this->request->input('payment_date')) ?: date('Y-m-d');
         $amount = (float)$this->request->input('amount', 0.00);
         $paymentMode = $this->request->input('payment_mode', 'cash');
         $chequeNo = trim($this->request->input('cheque_no', ''));
@@ -300,7 +300,7 @@ class VoucherController extends Controller
         $fyId = Session::getFinancialYearId();
         $userId = Session::getUserId();
 
-        $journalDate = $this->request->input('journal_date', date('Y-m-d'));
+        $journalDate = parseDateToDb($this->request->input('journal_date')) ?: date('Y-m-d');
         $narration = trim($this->request->input('narration', ''));
         $rawLines = $this->request->input('lines', []);
 

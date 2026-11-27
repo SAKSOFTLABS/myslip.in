@@ -41,7 +41,70 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch(e) {}
         }, 5000);
     });
+
+    // 4. Initialize dd-mm-yyyy Datepickers across all date inputs
+    initGlobalDatepickers();
+
+    document.addEventListener('shown.bs.modal', function(e) {
+        initGlobalDatepickers(e.target);
+    });
 });
+
+/**
+ * Global Datepicker Initializer (enforces dd-mm-yyyy visual display across all browsers and locales)
+ */
+function initGlobalDatepickers(root = document) {
+    if (typeof flatpickr !== 'undefined') {
+        const dateInputs = root.querySelectorAll('input[type="date"], input.datepicker');
+        dateInputs.forEach(function(el) {
+            if (el._flatpickr) return;
+            flatpickr(el, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d-m-Y",
+                allowInput: true,
+                parseDate: function(dateStr, format) {
+                    if (!dateStr) return null;
+                    const dmy = dateStr.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+                    if (dmy) {
+                        return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+                    }
+                    const ymd = dateStr.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})$/);
+                    if (ymd) {
+                        return new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+                    }
+                    const d = new Date(dateStr);
+                    return isNaN(d.getTime()) ? null : d;
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    if (instance.altInput) {
+                        instance.altInput.placeholder = "dd-mm-yyyy";
+                        if (el.classList.contains('form-control-sm') || el.closest('.input-group-sm')) {
+                            instance.altInput.classList.add('form-control-sm');
+                        }
+                        if (el.hasAttribute('required')) {
+                            instance.altInput.setAttribute('required', 'required');
+                        }
+                        if (el.hasAttribute('disabled')) {
+                            instance.altInput.setAttribute('disabled', 'disabled');
+                        }
+                        if (el.hasAttribute('readonly')) {
+                            instance.altInput.setAttribute('readonly', 'readonly');
+                        }
+
+                        instance.altInput.addEventListener('blur', function() {
+                            const val = instance.altInput.value.trim();
+                            if (val) {
+                                instance.setDate(val, true);
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    }
+}
+window.initGlobalDatepickers = initGlobalDatepickers;
 
 // Toast notification helper
 function showToast(message, type = 'success') {

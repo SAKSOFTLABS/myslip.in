@@ -27,8 +27,8 @@ class GstReportController extends Controller
         $companyId = Session::getCompanyId();
         $db = Database::getInstance();
 
-        $startDate = $this->request->input('start_date', date('Y-m-01'));
-        $endDate = $this->request->input('end_date', date('Y-m-t'));
+        $startDate = parseDateToDb($this->request->input('start_date')) ?: date('Y-m-01');
+        $endDate = parseDateToDb($this->request->input('end_date')) ?: date('Y-m-t');
 
         // 1. B2B Invoices (Customers with GSTIN)
         $b2bInvoices = $db->fetchAll(
@@ -86,8 +86,8 @@ class GstReportController extends Controller
         $companyId = Session::getCompanyId();
         $db = Database::getInstance();
 
-        $startDate = $this->request->input('start_date', date('Y-m-01'));
-        $endDate = $this->request->input('end_date', date('Y-m-t'));
+        $startDate = parseDateToDb($this->request->input('start_date')) ?: date('Y-m-01');
+        $endDate = parseDateToDb($this->request->input('end_date')) ?: date('Y-m-t');
 
         // 3.1 Outward Taxable Supplies (from active Sales)
         $outward = $db->fetchOne(

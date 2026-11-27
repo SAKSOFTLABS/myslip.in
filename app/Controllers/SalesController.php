@@ -38,8 +38,8 @@ class SalesController extends Controller
         $search = $this->request->input('search');
 
         $sales = $this->saleModel->getSalesList([
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'start_date' => parseDateToDb($startDate),
+            'end_date' => parseDateToDb($endDate),
             'search' => $search
         ]);
 
@@ -87,8 +87,8 @@ class SalesController extends Controller
         $companyStateCode = Session::get('company_state_code', '27');
 
         $customerId = (int)$this->request->input('customer_id');
-        $invoiceDate = $this->request->input('invoice_date', date('Y-m-d'));
-        $dueDate = $this->request->input('due_date') ?: null;
+        $invoiceDate = parseDateToDb($this->request->input('invoice_date')) ?: date('Y-m-d');
+        $dueDate = parseDateToDb($this->request->input('due_date'));
         $paymentMode = $this->request->input('payment_mode', 'credit');
         $salesType = $this->request->input('sales_type', 'tax_invoice');
         $referenceNo = trim($this->request->input('reference_no', ''));
@@ -434,8 +434,8 @@ class SalesController extends Controller
         }
 
         $customerId = (int)$this->request->input('customer_id');
-        $invoiceDate = $this->request->input('invoice_date', date('Y-m-d'));
-        $dueDate = $this->request->input('due_date') ?: null;
+        $invoiceDate = parseDateToDb($this->request->input('invoice_date')) ?: date('Y-m-d');
+        $dueDate = parseDateToDb($this->request->input('due_date'));
         $paymentMode = $this->request->input('payment_mode', 'credit');
         $salesType = $this->request->input('sales_type', 'tax_invoice');
         $referenceNo = trim($this->request->input('reference_no', ''));

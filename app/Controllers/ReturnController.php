@@ -86,7 +86,7 @@ class ReturnController extends Controller
         $companyStateCode = Session::get('company_state_code', '27');
 
         $customerId = (int)$this->request->input('customer_id');
-        $returnDate = $this->request->input('return_date', date('Y-m-d'));
+        $returnDate = parseDateToDb($this->request->input('return_date')) ?: date('Y-m-d');
         $reason = trim($this->request->input('reason', 'Goods Damaged / Customer Returned'));
         $rawItems = $this->request->input('items', []);
 
