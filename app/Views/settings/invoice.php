@@ -1,5 +1,18 @@
 <div class="row justify-content-center">
     <div class="col-lg-9">
+        <div class="alert alert-primary d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-palette-fill fs-4 text-primary"></i>
+                <div>
+                    <strong>Looking for ready-made professional bill designs?</strong>
+                    <div class="small text-muted">Browse our gallery of Free and Paid templates (GST, Retail A5, Thermal POS, Minimalist, Luxury).</div>
+                </div>
+            </div>
+            <a href="<?= url('/settings/bill-designs') ?>" class="btn btn-sm btn-primary fw-bold text-nowrap">
+                <i class="bi bi-palette me-1"></i> Open Bill Design Gallery
+            </a>
+        </div>
+
         <div class="card-custom">
             <div class="card-header">
                 <span class="fw-bold"><i class="bi bi-printer-fill me-2 text-primary"></i> Invoice Customization & Printing Settings</span>

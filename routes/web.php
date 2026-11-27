@@ -128,6 +128,19 @@ Router::get('/reports/gst/gstr3b', 'GstReportController@gstr3b', $saasMiddleware
 // Printing Invoices (A4, A5, Thermal)
 Router::get('/invoices/print/{id}', 'InvoicePrintController@printInvoice', $saasMiddlewares);
 
+// Bill Designs Gallery & Activation (Tenant Scoped)
+Router::get('/settings/bill-designs', 'BillDesignController@gallery', $saasMiddlewares);
+Router::get('/settings/bill-designs/preview/{id}', 'BillDesignController@preview', $saasMiddlewares);
+Router::post('/settings/bill-designs/activate/{id}', 'BillDesignController@activate', $saasMiddlewares);
+
+// Bill Designs Tenant APIs
+Router::get('/api/bill-designs', 'BillDesignApiController@index', $saasMiddlewares);
+Router::get('/api/bill-designs/{id}', 'BillDesignApiController@show', $saasMiddlewares);
+Router::get('/api/bill-designs/{id}/preview', 'BillDesignApiController@previewData', $saasMiddlewares);
+Router::post('/api/bill-designs/{id}/activate', 'BillDesignApiController@activate', $saasMiddlewares);
+Router::get('/api/company/bill-design-settings', 'BillDesignApiController@companySettings', $saasMiddlewares);
+Router::get('/api/company/available-bill-designs', 'BillDesignApiController@availableDesigns', $saasMiddlewares);
+
 // Settings, Backup & Team
 Router::get('/settings', 'SettingsController@index', $saasMiddlewares);
 Router::get('/settings/company', 'SettingsController@company', $saasMiddlewares);
@@ -163,3 +176,37 @@ Router::get('/admin/plans', 'SuperAdminController@plans', $superAdminMiddlewares
 Router::post('/admin/plans/update/{id}', 'SuperAdminController@updatePlan', $superAdminMiddlewares);
 Router::get('/admin/users', 'SuperAdminController@users', $superAdminMiddlewares);
 Router::get('/admin/logs', 'SuperAdminController@logs', $superAdminMiddlewares);
+
+// Super Admin Bill Design Management
+Router::get('/admin/bill-designs', 'SuperAdminBillDesignController@index', $superAdminMiddlewares);
+Router::get('/admin/bill-designs/create', 'SuperAdminBillDesignController@create', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/store', 'SuperAdminBillDesignController@store', $superAdminMiddlewares);
+Router::get('/admin/bill-designs/edit/{id}', 'SuperAdminBillDesignController@edit', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/update/{id}', 'SuperAdminBillDesignController@update', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/publish/{id}', 'SuperAdminBillDesignController@publish', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/unpublish/{id}', 'SuperAdminBillDesignController@unpublish', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/archive/{id}', 'SuperAdminBillDesignController@archive', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/duplicate/{id}', 'SuperAdminBillDesignController@duplicate', $superAdminMiddlewares);
+Router::get('/admin/bill-designs/preview/{id}', 'SuperAdminBillDesignController@preview', $superAdminMiddlewares);
+
+// Super Admin Company Entitlements (Manual Paid Design Access Grant & Revoke)
+Router::get('/admin/bill-designs/entitlements', 'SuperAdminBillDesignController@entitlements', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/entitlements/grant', 'SuperAdminBillDesignController@grantAccess', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/entitlements/revoke/{id}', 'SuperAdminBillDesignController@revokeAccess', $superAdminMiddlewares);
+
+// Super Admin WhatsApp Enquiry Settings
+Router::get('/admin/bill-designs/settings', 'SuperAdminBillDesignController@whatsappSettings', $superAdminMiddlewares);
+Router::post('/admin/bill-designs/settings', 'SuperAdminBillDesignController@updateWhatsappSettings', $superAdminMiddlewares);
+
+// Super Admin Bill Design APIs
+Router::post('/api/admin/bill-designs', 'BillDesignApiController@adminStore', $superAdminMiddlewares);
+Router::put('/api/admin/bill-designs/{id}', 'BillDesignApiController@adminUpdate', $superAdminMiddlewares);
+Router::post('/api/admin/bill-designs/{id}', 'BillDesignApiController@adminUpdate', $superAdminMiddlewares);
+Router::post('/api/admin/bill-designs/{id}/publish', 'BillDesignApiController@adminPublish', $superAdminMiddlewares);
+Router::post('/api/admin/bill-designs/{id}/unpublish', 'BillDesignApiController@adminUnpublish', $superAdminMiddlewares);
+Router::post('/api/admin/bill-designs/{id}/archive', 'BillDesignApiController@adminArchive', $superAdminMiddlewares);
+Router::post('/api/admin/bill-designs/{id}/duplicate', 'BillDesignApiController@adminDuplicate', $superAdminMiddlewares);
+Router::post('/api/admin/company-template-access/grant', 'BillDesignApiController@adminGrantAccess', $superAdminMiddlewares);
+Router::post('/api/admin/company-template-access/revoke', 'BillDesignApiController@adminRevokeAccess', $superAdminMiddlewares);
+Router::get('/api/admin/company-template-access', 'BillDesignApiController@adminEntitlements', $superAdminMiddlewares);
+Router::post('/api/admin/bill-design-settings', 'BillDesignApiController@adminSaveSettings', $superAdminMiddlewares);

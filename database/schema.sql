@@ -870,4 +870,75 @@ CREATE TABLE `payment_gateway_transactions` (
     INDEX `idx_pg_order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 22. Bill Templates (Predesigned Bill Design Gallery)
+CREATE TABLE IF NOT EXISTS `bill_templates` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(150) NOT NULL,
+    `template_key` VARCHAR(100) NOT NULL UNIQUE,
+    `description` TEXT NULL,
+    `category` VARCHAR(50) NOT NULL DEFAULT 'GST Invoice',
+    `paper_size` VARCHAR(50) NOT NULL DEFAULT 'A4',
+    `preview_image` VARCHAR(255) NULL,
+    `template_config` LONGTEXT NULL,
+    `version` VARCHAR(20) NOT NULL DEFAULT '1.0.0',
+    `pricing_type` ENUM('free', 'paid') NOT NULL DEFAULT 'free',
+    `price` DECIMAL(10,2) NULL DEFAULT 0.00,
+    `currency` VARCHAR(10) NOT NULL DEFAULT 'INR',
+    `is_featured` TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order` INT NOT NULL DEFAULT 0,
+    `status` ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'published',
+    `created_by` INT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_bt_status` (`status`),
+    INDEX `idx_bt_category` (`category`),
+    INDEX `idx_bt_pricing` (`pricing_type`),
+    INDEX `idx_bt_paper` (`paper_size`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 23. Company Bill Settings (Company Active Design)
+CREATE TABLE IF NOT EXISTS `company_bill_settings` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `company_id` INT NOT NULL,
+    `active_template_id` INT NOT NULL,
+    `active_template_version` VARCHAR(20) NOT NULL DEFAULT '1.0.0',
+    `document_type` VARCHAR(50) NOT NULL DEFAULT 'sales_invoice',
+    `branch_id` INT NULL,
+    `updated_by` INT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uk_comp_doc` (`company_id`, `document_type`),
+    INDEX `idx_cbs_company` (`company_id`),
+    INDEX `idx_cbs_template` (`active_template_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 24. Company Bill Template Access (Admin-Controlled Entitlements for Paid Designs)
+CREATE TABLE IF NOT EXISTS `company_bill_template_access` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `company_id` INT NOT NULL,
+    `template_id` INT NOT NULL,
+    `access_status` ENUM('active', 'revoked') NOT NULL DEFAULT 'active',
+    `granted_by` INT NULL,
+    `granted_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `revoked_date` DATETIME NULL,
+    `notes` TEXT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `uk_comp_tpl` (`company_id`, `template_id`),
+    INDEX `idx_cbta_comp_status` (`company_id`, `access_status`),
+    INDEX `idx_cbta_template` (`template_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 25. Bill Design Settings (Super Admin WhatsApp Enquiry Configuration)
+CREATE TABLE IF NOT EXISTS `bill_design_settings` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `whatsapp_number` VARCHAR(30) NOT NULL DEFAULT '919876543210',
+    `default_enquiry_message` TEXT NULL,
+    `business_name` VARCHAR(150) NULL DEFAULT 'MYSLIP.IN',
+    `support_email` VARCHAR(150) NULL DEFAULT 'support@myslip.in',
+    `updated_by` INT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

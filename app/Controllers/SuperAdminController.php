@@ -127,6 +127,8 @@ class SuperAdminController extends Controller
                 'numbering_series',
                 'invoice_settings',
                 'company_settings',
+                'company_bill_settings',
+                'company_bill_template_access',
                 'company_users',
                 'subscriptions',
                 'backups',

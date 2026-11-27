@@ -104,10 +104,16 @@ $isSuperAdmin = \App\Core\Session::isSuperAdmin();
         <?php endif; ?>
 
         <li class="menu-header">Settings & SaaS</li>
-        <li class="menu-item <?= str_contains($currentUri, '/settings') ? 'active' : '' ?>">
+        <li class="menu-item <?= ($currentUri === '/settings' || str_contains($currentUri, '/settings/invoice') || str_contains($currentUri, '/settings/users')) ? 'active' : '' ?>">
             <a href="<?= url('/settings') ?>" class="menu-link">
                 <i class="bi bi-gear"></i>
                 <span>Company & Print Setup</span>
+            </a>
+        </li>
+        <li class="menu-item <?= str_contains($currentUri, '/settings/bill-designs') ? 'active' : '' ?>">
+            <a href="<?= url('/settings/bill-designs') ?>" class="menu-link">
+                <i class="bi bi-palette text-primary"></i>
+                <span>Bill Designs</span>
             </a>
         </li>
         <li class="menu-item <?= str_contains($currentUri, '/subscription') ? 'active' : '' ?>">

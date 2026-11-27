@@ -39,10 +39,22 @@
                     <span>Registered Users</span>
                 </a>
             </li>
-            <li class="menu-item">
+            <li class="menu-item <?= str_contains($currentUri ?? '', '/admin/plans') ? 'active' : '' ?>">
                 <a href="<?= url('/admin/plans') ?>" class="menu-link">
                     <i class="bi bi-award"></i>
                     <span>SaaS Plans & Pricing</span>
+                </a>
+            </li>
+            <li class="menu-item <?= str_contains($currentUri ?? '', '/admin/bill-designs') && !str_contains($currentUri ?? '', '/admin/bill-designs/settings') ? 'active' : '' ?>">
+                <a href="<?= url('/admin/bill-designs') ?>" class="menu-link">
+                    <i class="bi bi-palette2"></i>
+                    <span>Bill Designs</span>
+                </a>
+            </li>
+            <li class="menu-item <?= str_contains($currentUri ?? '', '/admin/bill-designs/settings') ? 'active' : '' ?>">
+                <a href="<?= url('/admin/bill-designs/settings') ?>" class="menu-link">
+                    <i class="bi bi-whatsapp text-success"></i>
+                    <span>WhatsApp Settings</span>
                 </a>
             </li>
             <li class="menu-item">
