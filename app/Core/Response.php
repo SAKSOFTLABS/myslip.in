@@ -34,12 +34,14 @@ class Response
 
     public static function redirect(string $url, int $statusCode = 302): void
     {
-        $config = require __DIR__ . '/../Config/app.php';
-        $baseUrl = $config['url'];
-        
-        // If relative path given, prepend base url
+        // If relative application route path given, resolve through url()
         if (str_starts_with($url, '/')) {
-            $url = rtrim($baseUrl, '/') . $url;
+            $url = url($url);
+        }
+
+        // Commit session data to disk/storage before redirecting
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
 
         http_response_code($statusCode);

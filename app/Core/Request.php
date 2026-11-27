@@ -46,6 +46,12 @@ class Request
         // Remove base path from URI if present
         if (!empty($basePath) && str_starts_with($uri, $basePath)) {
             $uri = substr($uri, strlen($basePath));
+        } else {
+            $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+            $scriptDir = rtrim($scriptDir, '/');
+            if (!empty($scriptDir) && $scriptDir !== '/' && str_starts_with($uri, $scriptDir)) {
+                $uri = substr($uri, strlen($scriptDir));
+            }
         }
 
         $uri = '/' . trim($uri, '/');

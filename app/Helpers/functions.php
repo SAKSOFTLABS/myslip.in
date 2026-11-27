@@ -161,9 +161,22 @@ function numberToWords(float $number): string
 function url(string $path = ''): string
 {
     $config = require __DIR__ . '/../Config/app.php';
-    $base = rtrim($config['url'], '/');
+    $basePath = rtrim($config['base_path'] ?? '', '/');
+    
+    // Auto-detect base path if configured base path doesn't match current request URI
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    if (!empty($basePath) && !str_starts_with($requestUri, $basePath)) {
+        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        $scriptDir = rtrim($scriptDir, '/');
+        if (!empty($scriptDir) && $scriptDir !== '/' && str_starts_with($requestUri, $scriptDir)) {
+            $basePath = $scriptDir;
+        } else {
+            $basePath = '';
+        }
+    }
+
     $path = '/' . ltrim($path, '/');
-    return $path === '/' ? $base : $base . $path;
+    return $path === '/' ? ($basePath ?: '/') : ($basePath . $path);
 }
 
 /**
@@ -171,9 +184,7 @@ function url(string $path = ''): string
  */
 function asset(string $path): string
 {
-    $config = require __DIR__ . '/../Config/app.php';
-    $base = rtrim($config['url'], '/');
-    return $base . '/assets/' . ltrim($path, '/');
+    return url('/assets/' . ltrim($path, '/'));
 }
 
 /**

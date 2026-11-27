@@ -15,14 +15,22 @@ class Session
             ini_set('session.use_only_cookies', 1);
             ini_set('session.use_strict_mode', 1);
 
+            $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+                       (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                       (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
+                       (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+
+            // Only enforce secure cookies if the connection is truly HTTPS
+            $cookieSecure = !empty($sessConfig['secure']) && $isHttps;
+
             session_name($sessConfig['name']);
             session_set_cookie_params([
-                'lifetime' => $sessConfig['lifetime'],
+                'lifetime' => $sessConfig['lifetime'] ?? 86400 * 7,
                 'path' => '/',
                 'domain' => '',
-                'secure' => $sessConfig['secure'],
-                'httponly' => $sessConfig['httponly'],
-                'samesite' => $sessConfig['samesite']
+                'secure' => $cookieSecure,
+                'httponly' => true,
+                'samesite' => $sessConfig['samesite'] ?? 'Lax'
             ]);
 
             session_start();
@@ -71,7 +79,9 @@ class Session
 
     public static function regenerate(): void
     {
-        session_regenerate_id(true);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            @session_regenerate_id(false);
+        }
     }
 
     // Flash Messages
