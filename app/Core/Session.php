@@ -95,17 +95,29 @@ class Session
         }
     }
 
+    private static ?array $cachedFlashes = null;
+
     // Flash Messages
     public static function flash(string $type, string $message): void
     {
         $_SESSION['_flash'][$type][] = $message;
+        if (self::$cachedFlashes !== null) {
+            self::$cachedFlashes[$type][] = $message;
+        }
     }
 
     public static function getFlashes(): array
     {
-        $flashes = $_SESSION['_flash'] ?? [];
-        unset($_SESSION['_flash']);
-        return $flashes;
+        if (self::$cachedFlashes === null) {
+            self::$cachedFlashes = $_SESSION['_flash'] ?? [];
+            unset($_SESSION['_flash']);
+        }
+        return self::$cachedFlashes;
+    }
+
+    public static function hasFlashes(): bool
+    {
+        return !empty(self::getFlashes());
     }
 
     // Authentication & Tenant Helpers

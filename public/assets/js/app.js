@@ -31,12 +31,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 3. Auto-dismiss alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert-dismissible');
+    // 3. Auto-dismiss success/info alerts after 5 seconds (keep error/danger alerts visible)
+    const alerts = document.querySelectorAll('.alert-dismissible:not(.alert-danger)');
     alerts.forEach(function(alert) {
         setTimeout(function() {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+            try {
+                const bsAlert = bootstrap.Alert.getInstance(alert) || new bootstrap.Alert(alert);
+                bsAlert.close();
+            } catch(e) {}
         }, 5000);
     });
 });

@@ -1,7 +1,7 @@
 <h4 class="fw-bold mb-3 text-center">Start 30-Day Free Trial</h4>
 <p class="text-muted small text-center mb-4">No credit card required. Full feature access.</p>
 
-<form action="<?= url('/register') ?>" method="POST">
+<form id="registerForm" action="<?= url('/register') ?>" method="POST">
     <?= csrf_field() ?>
 
     <div class="mb-3">
@@ -24,7 +24,7 @@
         <label class="form-label fw-semibold small">Mobile Number <span class="text-danger">*</span></label>
         <div class="input-group">
             <span class="input-group-text bg-light"><i class="bi bi-phone"></i></span>
-            <input type="tel" name="mobile" class="form-control" placeholder="98XXXXXXXX" pattern="[0-9]{10}" value="<?= e(old('mobile')) ?>" required>
+            <input type="tel" name="mobile" id="reg_mobile" class="form-control" placeholder="98XXXXXXXX (10 digits)" maxlength="10" pattern="[0-9]{10}" title="Please enter a valid 10-digit mobile number" value="<?= e(old('mobile')) ?>" required>
         </div>
     </div>
 
@@ -33,14 +33,14 @@
             <label class="form-label fw-semibold small">Password <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
-                <input type="password" name="password" class="form-control" placeholder="••••••••" minlength="6" required>
+                <input type="password" name="password" id="reg_password" class="form-control" placeholder="••••••••" minlength="6" required>
             </div>
         </div>
         <div class="col-md-6">
             <label class="form-label fw-semibold small">Confirm Password <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
-                <input type="password" name="confirm_password" class="form-control" placeholder="••••••••" minlength="6" required>
+                <input type="password" name="confirm_password" id="reg_confirm_password" class="form-control" placeholder="••••••••" minlength="6" required>
             </div>
         </div>
     </div>
@@ -52,7 +52,7 @@
         </label>
     </div>
 
-    <button type="submit" class="btn btn-primary fw-bold w-100 py-2 shadow-sm">
+    <button type="submit" id="btnSubmitRegister" class="btn btn-primary fw-bold w-100 py-2 shadow-sm">
         <i class="bi bi-rocket-takeoff-fill me-1"></i> Register & Start 30-Day Trial
     </button>
 </form>
@@ -61,3 +61,28 @@
     Already have an account?
     <a href="<?= url('/login') ?>" class="fw-bold text-primary text-decoration-none">Log In</a>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileEl = document.getElementById('reg_mobile');
+    if (mobileEl) {
+        mobileEl.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+        });
+    }
+
+    const formEl = document.getElementById('registerForm');
+    if (formEl) {
+        formEl.addEventListener('submit', function(e) {
+            const pass = document.getElementById('reg_password').value;
+            const confirmPass = document.getElementById('reg_confirm_password').value;
+            if (pass !== confirmPass) {
+                e.preventDefault();
+                alert('Passwords do not match. Please ensure both passwords match before submitting.');
+                document.getElementById('reg_confirm_password').focus();
+                return false;
+            }
+        });
+    }
+});
+</script>

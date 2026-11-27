@@ -115,15 +115,23 @@ class AuthController extends Controller
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->flash('danger', 'Registration not possible: Invalid email address format (' . htmlspecialchars($email) . ').');
+            $this->flash('danger', 'Registration not possible: Invalid email address format (' . $email . ').');
             $this->redirect('/register');
         }
 
-        // Validate 10-digit mobile number
-        if (!preg_match('/^[0-9]{10}$/', $mobile)) {
-            $this->flash('danger', 'Registration not possible: Mobile number must be exactly 10 numeric digits.');
+        // Normalize 10-digit mobile number
+        $cleanMobile = preg_replace('/[^0-9]/', '', $mobile);
+        if (str_starts_with($cleanMobile, '91') && strlen($cleanMobile) === 12) {
+            $cleanMobile = substr($cleanMobile, 2);
+        } elseif (str_starts_with($cleanMobile, '0') && strlen($cleanMobile) === 11) {
+            $cleanMobile = substr($cleanMobile, 1);
+        }
+
+        if (!preg_match('/^[0-9]{10}$/', $cleanMobile)) {
+            $this->flash('danger', 'Registration not possible: Mobile number must be a valid 10-digit number (' . $mobile . ').');
             $this->redirect('/register');
         }
+        $mobile = $cleanMobile;
 
         if (strlen($password) < 6) {
             $this->flash('danger', 'Registration not possible: Password must be at least 6 characters long.');
@@ -137,13 +145,13 @@ class AuthController extends Controller
 
         // Check if email already registered
         if ($this->userModel->findByEmail($email)) {
-            $this->flash('danger', 'Registration not possible: Email [' . htmlspecialchars($email) . '] is already registered. Please log in or use a different email.');
+            $this->flash('danger', 'Registration not possible: Email [' . $email . '] is already registered. Please log in or use a different email.');
             $this->redirect('/register');
         }
 
         // Check if mobile number already registered
         if ($this->userModel->findByMobile($mobile)) {
-            $this->flash('danger', 'Registration not possible: Mobile number [' . htmlspecialchars($mobile) . '] is already registered. Please log in or use a different number.');
+            $this->flash('danger', 'Registration not possible: Mobile number [' . $mobile . '] is already registered. Please log in or use a different number.');
             $this->redirect('/register');
         }
 
