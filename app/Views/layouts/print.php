@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1024, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title><?= isset($pageTitle) ? e($pageTitle) : 'Invoice Print' ?> — MYSLIP.IN</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -12,24 +12,31 @@
 </head>
 <body class="print-preview-body">
 
-<div class="no-print bg-dark text-white p-3 d-flex justify-content-between align-items-center" style="min-width: 1024px; box-sizing: border-box;">
-    <div>
+<div class="no-print bg-dark text-white p-2 p-md-3 d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom border-secondary" style="width: 100%; box-sizing: border-box;">
+    <div class="d-flex align-items-center gap-2">
         <?php if (!empty($isPublicView)): ?>
             <span class="fw-bold fs-6 text-white d-inline-flex align-items-center">
                 <i class="bi bi-receipt-cutoff text-warning me-2"></i> <?= e($company['company_name'] ?? 'MYSLIP') ?> — Invoice #<?= e($sale['invoice_number'] ?? '') ?>
             </span>
         <?php else: ?>
             <a href="<?= url('/sales') ?>" class="btn btn-sm btn-outline-light me-1">
-                <i class="bi bi-arrow-left me-1"></i> Back to Invoices
+                <i class="bi bi-arrow-left me-1"></i> <span class="d-none d-sm-inline">Back to Invoices</span><span class="d-inline d-sm-none">Back</span>
             </a>
+            <span class="fw-semibold text-light small d-none d-md-inline">
+                Invoice #<?= e($sale['invoice_number'] ?? '') ?>
+            </span>
         <?php endif; ?>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- View Size Toggle for Mobile -->
+        <button type="button" class="btn btn-sm btn-outline-light d-md-none fw-semibold" id="zoomToggleBtn" onclick="toggleMobileZoom()" title="Toggle View Size">
+            <i class="bi bi-aspect-ratio me-1"></i> <span id="zoomToggleText">100%</span>
+        </button>
         <button type="button" class="btn btn-sm btn-light fw-semibold" onclick="window.print()">
             <i class="bi bi-printer me-1"></i> <?= !empty($isPublicView) ? 'Print / PDF' : 'Print Invoice (Ctrl + P)' ?>
         </button>
         <button type="button" id="btnDownloadInvoice" class="btn btn-sm btn-primary fw-semibold" onclick="downloadInvoicePDF()" title="Directly download invoice as PDF">
-            <i class="bi bi-download me-1"></i> Download Invoice
+            <i class="bi bi-download me-1"></i> <span class="d-none d-sm-inline">Download Invoice</span><span class="d-inline d-sm-none">Download</span>
         </button>
         <?php if (empty($isPublicView)): ?>
             <div class="btn-group">
@@ -57,8 +64,10 @@
 </div>
 
 <div class="print-preview-wrapper">
-    <div class="invoice-scaler-container">
-        <?= $content ?>
+    <div id="invoiceScalerContainer" class="invoice-scaler-container">
+        <div id="invoiceBoxWrapper" class="invoice-box-wrapper">
+            <?= $content ?>
+        </div>
     </div>
 </div>
 
@@ -287,6 +296,11 @@ function downloadInvoicePDF() {
         return;
     }
 
+    // Reset transform on wrapper during PDF capture so canvas captures pristine unscaled A4
+    const wrapper = document.getElementById('invoiceBoxWrapper');
+    const prevTransform = wrapper ? wrapper.style.transform : '';
+    if (wrapper) wrapper.style.transform = 'none';
+
     const opt = {
         margin:       [0, 0, 0, 0],
         filename:     filename,
@@ -296,12 +310,14 @@ function downloadInvoicePDF() {
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
+        if (wrapper) wrapper.style.transform = prevTransform;
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
         }
     }).catch(err => {
         console.error('PDF generation error:', err);
+        if (wrapper) wrapper.style.transform = prevTransform;
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -309,6 +325,94 @@ function downloadInvoicePDF() {
         window.print();
     });
 }
+
+// Responsive Mobile A4 Auto-Fit Scaling
+let isFitScreen = true;
+
+function applyMobileA4Scaling() {
+    const scalerContainer = document.getElementById('invoiceScalerContainer');
+    const invoiceWrapper = document.getElementById('invoiceBoxWrapper');
+    const zoomText = document.getElementById('zoomToggleText');
+    if (!scalerContainer || !invoiceWrapper) return;
+
+    const screenWidth = window.innerWidth;
+
+    const invoiceBox = invoiceWrapper.querySelector('.invoice-a4-box, .invoice-classic-gst, .invoice-a4-fullheight, .invoice-creative-emerald, .invoice-executive-gold, .invoice-minimal, .invoice-modern-blue, .invoice-wholesale-grid, .invoice-a5-box, .invoice-retail-a5, .invoice-thermal-box, .print-container');
+    if (!invoiceBox) return;
+
+    const isThermal = invoiceBox.classList.contains('invoice-thermal-box') || 
+                      invoiceBox.classList.contains('format-thermal') || 
+                      invoiceBox.classList.contains('thermal-receipt-58mm') || 
+                      invoiceBox.classList.contains('thermal-receipt-80mm');
+    const isA5 = invoiceBox.classList.contains('invoice-a5-box') || 
+                 invoiceBox.classList.contains('invoice-retail-a5') || 
+                 invoiceBox.classList.contains('format-a5');
+
+    const standardWidth = isThermal ? 320 : (isA5 ? 560 : 794);
+
+    if (screenWidth < 820 && !isThermal) {
+        if (isFitScreen) {
+            const availableWidth = Math.max(screenWidth - 20, 280);
+            const scale = availableWidth / standardWidth;
+
+            invoiceWrapper.style.width = standardWidth + 'px';
+            invoiceWrapper.style.minWidth = standardWidth + 'px';
+            invoiceWrapper.style.transformOrigin = 'top left';
+            invoiceWrapper.style.transform = `scale(${scale})`;
+
+            const scaledWidth = Math.round(standardWidth * scale);
+            const unscaledHeight = invoiceWrapper.scrollHeight || invoiceBox.scrollHeight || 1123;
+            const scaledHeight = Math.ceil(unscaledHeight * scale);
+
+            scalerContainer.style.width = scaledWidth + 'px';
+            scalerContainer.style.height = (scaledHeight + 30) + 'px';
+            scalerContainer.style.overflow = 'hidden';
+            scalerContainer.style.margin = '0 auto';
+
+            if (zoomText) zoomText.textContent = '100%';
+        } else {
+            invoiceWrapper.style.width = standardWidth + 'px';
+            invoiceWrapper.style.minWidth = standardWidth + 'px';
+            invoiceWrapper.style.transformOrigin = 'top left';
+            invoiceWrapper.style.transform = 'none';
+
+            scalerContainer.style.width = standardWidth + 'px';
+            scalerContainer.style.height = 'auto';
+            scalerContainer.style.overflow = 'visible';
+            scalerContainer.style.margin = '0 auto';
+
+            if (zoomText) zoomText.textContent = 'Fit';
+        }
+    } else {
+        invoiceWrapper.style.transform = 'none';
+        invoiceWrapper.style.width = '';
+        invoiceWrapper.style.minWidth = '';
+        invoiceWrapper.style.transformOrigin = '';
+
+        scalerContainer.style.width = '';
+        scalerContainer.style.height = 'auto';
+        scalerContainer.style.overflow = 'visible';
+        scalerContainer.style.margin = '0 auto';
+
+        if (zoomText) zoomText.textContent = '100%';
+    }
+}
+
+function toggleMobileZoom() {
+    isFitScreen = !isFitScreen;
+    applyMobileA4Scaling();
+}
+
+window.addEventListener('resize', applyMobileA4Scaling);
+window.addEventListener('orientationchange', () => {
+    setTimeout(applyMobileA4Scaling, 200);
+});
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(applyMobileA4Scaling, 80);
+});
+window.addEventListener('load', () => {
+    setTimeout(applyMobileA4Scaling, 100);
+});
 
 // Support Enter key press inside modal input
 document.addEventListener('DOMContentLoaded', () => {

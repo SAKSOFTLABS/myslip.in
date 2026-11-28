@@ -1,9 +1,10 @@
 /**
  * MYSLIP.IN — Multi-Format Print Stylesheet (A4, A5, 3-Inch Thermal)
+ * High-fidelity print engine: exact 1:1 scale, zero distortion, full-height A4 matching screen preview.
  */
 
 @media print {
-    /* Hide all application UI */
+    /* Hide all application UI, navigation, buttons, and dialogs */
     .app-sidebar,
     .app-navbar,
     .no-print,
@@ -11,17 +12,32 @@
     .alert,
     nav,
     footer,
-    .toast-container {
+    .toast-container,
+    .modal-backdrop,
+    .modal {
         display: none !important;
     }
 
-    body {
+    /* Force exact print color rendering */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Reset HTML, BODY and preview wrappers so they never impose 1024px or scroll constraints */
+    html,
+    body,
+    body.print-preview-body {
         background: #ffffff !important;
         color: #000000 !important;
         font-family: 'Segoe UI', Arial, sans-serif !important;
         font-size: 12px;
         margin: 0 !important;
         padding: 0 !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        overflow: visible !important;
     }
 
     .app-main, .content-body {
@@ -30,29 +46,74 @@
         width: 100% !important;
     }
 
-    .print-container {
-        box-shadow: none !important;
-        border: none !important;
+    .print-preview-wrapper,
+    .invoice-scaler-container,
+    .invoice-box-wrapper {
         padding: 0 !important;
         margin: 0 !important;
+        background: transparent !important;
+        display: block !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
         width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
-    /* Standard A4 Page Setup */
+    /* Standard A4 Page Setup with Zero Margin (exact A4 printable canvas) */
     @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 0;
+    }
+
+    /* All A4 Invoices: Exact physical A4 dimensions (210mm x 297mm) with crisp internal padding */
+    .invoice-a4-box,
+    .invoice-classic-gst,
+    .invoice-a4-fullheight,
+    .invoice-creative-emerald,
+    .invoice-executive-gold,
+    .invoice-minimal,
+    .invoice-modern-blue,
+    .invoice-wholesale-grid,
+    .print-container {
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-width: 210mm !important;
+        min-height: 297mm !important;
+        height: 297mm !important;
+        margin: 0 auto !important;
+        padding: 10mm 12mm !important;
+        box-sizing: border-box !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border: none !important;
+        transform: none !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
     }
 
     /* Standard A5 Page Setup */
-    .format-a5 {
+    .format-a5,
+    .invoice-a5-box,
+    .invoice-retail-a5 {
+        width: 148mm !important;
+        max-width: 148mm !important;
+        min-width: 148mm !important;
+        min-height: 210mm !important;
+        height: 210mm !important;
+        padding: 8mm 10mm !important;
         font-size: 11px !important;
     }
 
     /* 3-Inch Thermal Printer Setup (80mm) */
-    .format-thermal {
+    .format-thermal,
+    .invoice-thermal-box,
+    .thermal-receipt-58mm,
+    .thermal-receipt-80mm {
         width: 78mm !important;
         max-width: 78mm !important;
+        min-height: auto !important;
+        height: auto !important;
         font-family: 'Courier New', Courier, monospace !important;
         font-size: 11px !important;
         line-height: 1.25 !important;
@@ -60,18 +121,30 @@
         padding: 2mm !important;
     }
 
+    .thermal-receipt-58mm {
+        width: 56mm !important;
+        max-width: 56mm !important;
+        font-size: 10px !important;
+    }
+
     .format-thermal .thermal-divider {
         border-top: 1px dashed #000 !important;
         margin: 4px 0 !important;
     }
 
-    .format-thermal table {
+    .format-thermal table,
+    .thermal-receipt-80mm table,
+    .thermal-receipt-58mm table {
         width: 100% !important;
         font-size: 10px !important;
     }
 
     .format-thermal table th,
-    .format-thermal table td {
+    .format-thermal table td,
+    .thermal-receipt-80mm table th,
+    .thermal-receipt-80mm table td,
+    .thermal-receipt-58mm table th,
+    .thermal-receipt-58mm table td {
         padding: 2px 1px !important;
         border: none !important;
     }
@@ -90,8 +163,6 @@
     table.invoice-table th {
         background-color: #f1f5f9 !important;
         font-weight: bold !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
     }
 
     /* Full-Height Layout for Classic GST & Standard A4 */
@@ -100,8 +171,6 @@
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
-        min-height: 272mm !important;
-        box-sizing: border-box !important;
     }
 
     .classic-table-wrapper,
@@ -127,67 +196,71 @@
         padding: 0 !important;
     }
 
-    .print-preview-wrapper,
-    .invoice-scaler-container {
-        padding: 0 !important;
-        margin: 0 !important;
-        background: transparent !important;
-        display: block !important;
-        width: 100% !important;
-        height: auto !important;
-    }
-
-    .invoice-a4-box,
-    .invoice-a5-box,
-    .invoice-classic-gst,
-    .invoice-a4-fullheight,
-    .invoice-retail-a5,
-    .print-container {
-        transform: none !important;
-        width: 100% !important;
-        box-shadow: none !important;
-        margin: 0 !important;
+    .classic-bottom-section,
+    .a4-bottom-section {
+        flex-shrink: 0 !important;
+        page-break-inside: avoid !important;
     }
 }
 
-/* Screen Preview Styles (Authentic A4 Desktop layout) */
+/* Screen Preview Styles (Authentic A4 Layout with Multi-Screen Responsiveness) */
 body.print-preview-body {
-    min-width: 1024px;
     background-color: #525659;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    width: 100%;
 }
 
 .print-preview-wrapper {
     background-color: #525659;
-    padding: 24px 0;
+    padding: 20px 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
     width: 100%;
-    min-width: 1024px;
+    min-width: 0;
 }
 
 .invoice-scaler-container {
     width: 100%;
-    min-width: 1024px;
+    max-width: 100%;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
-.invoice-a4-box {
+.invoice-box-wrapper {
+    margin: 0 auto;
+    box-sizing: border-box;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Authentic A4 Container on Screen */
+.invoice-a4-box,
+.invoice-classic-gst,
+.invoice-a4-fullheight,
+.invoice-creative-emerald,
+.invoice-executive-gold,
+.invoice-minimal,
+.invoice-modern-blue,
+.invoice-wholesale-grid {
     background: #ffffff;
     width: 210mm !important;
     min-width: 210mm !important;
     min-height: 297mm !important;
-    padding: 15mm !important;
+    padding: 12mm 14mm !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;
 }
 
-.invoice-a5-box {
+.invoice-a5-box,
+.invoice-retail-a5 {
     background: #ffffff;
     width: 148mm !important;
     min-height: 210mm !important;
@@ -197,11 +270,23 @@ body.print-preview-body {
     box-sizing: border-box !important;
 }
 
-.invoice-thermal-box {
+.invoice-thermal-box,
+.thermal-receipt-80mm {
     background: #ffffff;
     width: 80mm !important;
     min-height: 140mm !important;
     padding: 4mm !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.thermal-receipt-58mm {
+    background: #ffffff;
+    width: 58mm !important;
+    min-height: 120mm !important;
+    padding: 3mm !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;

@@ -87,18 +87,25 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=110x110&
 @media print {
     @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 0;
     }
     .invoice-classic-gst {
-        min-height: 272mm !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        min-height: 297mm !important;
+        height: 297mm !important;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-width: 210mm !important;
+        padding: 10mm 12mm !important;
+        margin: 0 auto !important;
         box-shadow: none !important;
         border: none !important;
-        width: 100% !important;
+        box-sizing: border-box !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
     }
     .classic-bottom-section {
-        page-break-inside: avoid;
+        flex-shrink: 0 !important;
+        page-break-inside: avoid !important;
     }
     .no-print {
         display: none !important;
