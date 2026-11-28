@@ -13,6 +13,10 @@
     <!-- Application CSS -->
     <link href="<?= asset('css/app.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/print.css') ?>" rel="stylesheet">
+    <link rel="manifest" href="<?= asset('manifest.json') ?>">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <script>
         window.APP_URL = "<?= url() ?>";
@@ -70,10 +74,13 @@
 <?php if (!\App\Core\Session::isSuperAdmin()): ?>
 <script>
 (function() {
+    // 1. Fullscreen Persistence Engine
+    function isFsLocked() {
+        return localStorage.getItem('myslip_fullscreen_locked') !== '0';
+    }
+
     function requestFullscreen() {
-        if (sessionStorage.getItem('myslip_fullscreen_disabled') === '1') {
-            return;
-        }
+        if (!isFsLocked()) return;
         if (!document.fullscreenElement) {
             const el = document.documentElement;
             const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
@@ -85,14 +92,14 @@
 
     function toggleFullscreen() {
         if (!document.fullscreenElement) {
-            sessionStorage.removeItem('myslip_fullscreen_disabled');
+            localStorage.setItem('myslip_fullscreen_locked', '1');
             const el = document.documentElement;
             const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
             if (rfs) {
                 rfs.call(el).catch(function() {});
             }
         } else {
-            sessionStorage.setItem('myslip_fullscreen_disabled', '1');
+            localStorage.setItem('myslip_fullscreen_locked', '0');
             const efs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
             if (efs) {
                 efs.call(document).catch(function() {});
@@ -101,37 +108,167 @@
     }
 
     function updateIcon() {
+        const isFs = !!document.fullscreenElement;
         const icon = document.getElementById('fsIcon');
         if (icon) {
-            icon.className = document.fullscreenElement ? 'bi bi-fullscreen-exit text-primary' : 'bi bi-arrows-fullscreen';
+            icon.className = isFs ? 'bi bi-fullscreen-exit text-primary' : 'bi bi-arrows-fullscreen';
         }
         const btn = document.getElementById('btnToggleFullscreen');
         if (btn) {
-            btn.title = document.fullscreenElement ? 'Exit Fullscreen' : 'Enter Fullscreen (F11)';
+            btn.title = isFs ? 'Exit Fullscreen' : 'Enter Fullscreen (F11)';
         }
     }
 
+    // Default lock to active after login
+    if (localStorage.getItem('myslip_fullscreen_locked') === null) {
+        localStorage.setItem('myslip_fullscreen_locked', '1');
+    }
+
+    // 2. Seamless In-App Sidebar Navigation
+    // Keeps document alive so browser NEVER drops out of fullscreen when clicking sidebar menus
+    function navigateSeamless(url) {
+        const mainContent = document.querySelector('.content-body');
+        if (mainContent) {
+            mainContent.style.opacity = '0.5';
+            mainContent.style.transition = 'opacity 0.15s ease';
+        }
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                window.location.href = url;
+                return null;
+            }
+            if (res.url && res.url.includes('/login')) {
+                window.location.href = res.url;
+                return null;
+            }
+            return res.text();
+        })
+        .then(function(html) {
+            if (!html) return;
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // 1. Update Title
+            if (doc.title) {
+                document.title = doc.title;
+            }
+
+            // 2. Update Sidebar (active state)
+            const newMenu = doc.querySelector('.sidebar-menu');
+            const curMenu = document.querySelector('.sidebar-menu');
+            if (newMenu && curMenu) {
+                curMenu.innerHTML = newMenu.innerHTML;
+            }
+
+            // 3. Update Navbar Content
+            const newNavbar = doc.querySelector('.app-navbar');
+            const curNavbar = document.querySelector('.app-navbar');
+            if (newNavbar && curNavbar) {
+                curNavbar.innerHTML = newNavbar.innerHTML;
+            }
+
+            // 4. Update Main Content & Execute Scripts
+            const newBody = doc.querySelector('.content-body');
+            const curBody = document.querySelector('.content-body');
+            if (newBody && curBody) {
+                curBody.innerHTML = newBody.innerHTML;
+                curBody.style.opacity = '1';
+
+                const scripts = Array.from(curBody.querySelectorAll('script'));
+                scripts.forEach(function(oldScript) {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(function(attr) {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                    } else {
+                        newScript.text = oldScript.innerHTML;
+                    }
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            }
+
+            // 5. Update browser history
+            window.history.pushState({ url: url }, '', url);
+
+            // 6. Scroll to top
+            window.scrollTo(0, 0);
+
+            // 7. Re-initialize Global Datepickers
+            if (typeof initGlobalDatepickers === 'function') {
+                initGlobalDatepickers();
+            }
+
+            // 8. Close mobile sidebar if open
+            const sidebar = document.querySelector('.app-sidebar');
+            if (sidebar && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+
+            // 9. Dispatch DOMContentLoaded for newly loaded page listeners
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // 10. Maintain fullscreen
+            requestFullscreen();
+            updateIcon();
+        })
+        .catch(function(err) {
+            console.error('Seamless load fallback:', err);
+            window.location.href = url;
+        });
+    }
+
+    // Listen to browser Back/Forward navigation
+    window.addEventListener('popstate', function() {
+        if (window.location.href) {
+            navigateSeamless(window.location.href);
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Attempt fullscreen on page load
         requestFullscreen();
 
-        // Listen for user interactions to enter fullscreen if not yet active
-        function onUserGesture() {
-            if (!document.fullscreenElement && sessionStorage.getItem('myslip_fullscreen_disabled') !== '1') {
+        // Ensure user gestures anywhere on the screen enforce fullscreen if locked
+        function onUserInteraction() {
+            if (isFsLocked() && !document.fullscreenElement) {
                 requestFullscreen();
             }
         }
-        document.addEventListener('click', onUserGesture, { passive: true });
-        document.addEventListener('keydown', onUserGesture, { passive: true });
+        document.addEventListener('pointerdown', onUserInteraction, { passive: true });
+        document.addEventListener('click', onUserInteraction, { passive: true });
+        document.addEventListener('keydown', onUserInteraction, { passive: true });
 
-        const btn = document.getElementById('btnToggleFullscreen');
-        if (btn) {
-            btn.addEventListener('click', function(e) {
+        // Delegate Click on Sidebar Menu Links & Navbar Links
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('.app-sidebar a, .navbar-brand-mobile, a.seamless-link');
+            if (!link) return;
+
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+            if (link.target === '_blank' || link.hasAttribute('download')) return;
+            if (href.includes('/logout') || href.includes('/invoices/print') || href.includes('/invoices/view') || href.includes('/export')) return;
+
+            // Internal link -> navigate seamlessly
+            if (href.startsWith('/') || href.startsWith(window.location.origin)) {
+                e.preventDefault();
+                navigateSeamless(href);
+            }
+        });
+
+        // Fullscreen Toggle Button in Navbar (delegated)
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('#btnToggleFullscreen');
+            if (btn) {
                 e.preventDefault();
                 e.stopPropagation();
                 toggleFullscreen();
-            });
-        }
+            }
+        });
     });
 
     document.addEventListener('fullscreenchange', updateIcon);

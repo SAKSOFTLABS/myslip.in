@@ -83,8 +83,10 @@ $isRegister = str_contains($requestUri, 'register') || str_contains($requestUri,
 
     function toggleFullscreen() {
         if (!document.fullscreenElement) {
+            localStorage.setItem('myslip_fullscreen_locked', '1');
             requestFullscreen();
         } else {
+            localStorage.setItem('myslip_fullscreen_locked', '0');
             const efs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
             if (efs) {
                 efs.call(document).catch(function() {});

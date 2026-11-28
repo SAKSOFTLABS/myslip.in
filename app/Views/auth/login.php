@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
     if (form) {
         form.addEventListener('submit', function() {
+            localStorage.setItem('myslip_fullscreen_locked', '1');
             sessionStorage.setItem('myslip_auto_fullscreen', '1');
             sessionStorage.removeItem('myslip_fullscreen_disabled');
             try {

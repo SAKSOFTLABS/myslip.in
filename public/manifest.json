@@ -1,0 +1,9 @@
+{
+  "name": "MYSLIP.IN Billing Software",
+  "short_name": "MYSLIP",
+  "start_url": "/dashboard",
+  "display": "fullscreen",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a8a",
+  "description": "Fast & Simple Cloud Billing, Invoicing and Accounting Software"
+}

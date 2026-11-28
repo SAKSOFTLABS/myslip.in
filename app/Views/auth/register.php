@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('reg_confirm_password').focus();
                 return false;
             }
+            localStorage.setItem('myslip_fullscreen_locked', '1');
             sessionStorage.setItem('myslip_auto_fullscreen', '1');
             sessionStorage.removeItem('myslip_fullscreen_disabled');
             try {
