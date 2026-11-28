@@ -38,6 +38,12 @@
     <a href="<?= url('/register') ?>" class="fw-bold text-primary text-decoration-none">Start 30-Day Free Trial</a>
 </div>
 
+<div class="mt-3 text-center">
+    <a href="<?= url('/download') ?>" class="btn btn-sm btn-outline-dark fw-semibold" title="Download Windows Application (.exe)">
+        <i class="bi bi-windows me-1 text-primary"></i> Download Windows Desktop App (.exe)
+    </a>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
