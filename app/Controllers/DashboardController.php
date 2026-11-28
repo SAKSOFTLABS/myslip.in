@@ -9,6 +9,7 @@ use App\Models\Purchase;
 use App\Models\Customer;
 use App\Models\Vendor;
 use App\Models\Item;
+use App\Services\StockEngine;
 
 class DashboardController extends Controller
 {
@@ -68,14 +69,8 @@ class DashboardController extends Controller
             ['comp_id' => $companyId]
         );
 
-        // Current Stock Value
-        $stockValue = (float)$db->fetchValue(
-            "SELECT COALESCE(SUM((sm.qty_in - sm.qty_out) * i.purchase_rate), 0)
-             FROM `stock_movements` sm
-             JOIN `items` i ON sm.item_id = i.id
-             WHERE sm.company_id = :comp_id AND sm.is_cancelled = 0",
-            ['comp_id' => $companyId]
-        );
+        // Current Stock Value (Dynamically computed from actual purchase bills and inventory movements)
+        $stockValue = StockEngine::getTotalStockAssetValue($companyId);
 
         // Month Gross Profit = Taxable Sales - Cost of Goods Sold
         $cogs = (float)$db->fetchValue(

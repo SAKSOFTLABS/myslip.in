@@ -246,6 +246,12 @@ class PurchaseController extends Controller
                         $pItem['taxable_amount'],
                         "Purchase Bill {$purchaseNumber}"
                     );
+
+                    // Auto-sync item purchase_rate if not already set in item master
+                    $db->execute(
+                        "UPDATE `items` SET `purchase_rate` = :rate WHERE `id` = :item_id AND `company_id` = :comp_id AND (`purchase_rate` IS NULL OR `purchase_rate` <= 0)",
+                        ['rate' => $pItem['rate'], 'item_id' => $pItem['item_id'], 'comp_id' => $companyId]
+                    );
                 }
 
                 // 3. Automated Double-Entry Ledger Posting
@@ -598,6 +604,12 @@ class PurchaseController extends Controller
                         $pItem['rate'],
                         $pItem['taxable_amount'],
                         "Purchase Bill {$purchaseNumber} (Updated)"
+                    );
+
+                    // Auto-sync item purchase_rate if not already set in item master
+                    $db->execute(
+                        "UPDATE `items` SET `purchase_rate` = :rate WHERE `id` = :item_id AND `company_id` = :comp_id AND (`purchase_rate` IS NULL OR `purchase_rate` <= 0)",
+                        ['rate' => $pItem['rate'], 'item_id' => $pItem['item_id'], 'comp_id' => $companyId]
                     );
                 }
 

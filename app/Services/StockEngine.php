@@ -117,4 +117,95 @@ class StockEngine
 
         return $item ? (float)$item['purchase_rate'] : 0.00;
     }
+
+    /**
+     * Synchronize missing item purchase rates from actual purchase bills
+     */
+    public static function syncItemPurchaseRatesFromBills(int $companyId): void
+    {
+        $db = Database::getInstance();
+        $sql = "UPDATE `items` i
+                JOIN (
+                    SELECT pi.item_id, pi.rate
+                    FROM `purchase_items` pi
+                    JOIN (
+                        SELECT item_id, MAX(id) as max_id
+                        FROM `purchase_items`
+                        WHERE company_id = :comp_id1
+                        GROUP BY item_id
+                    ) latest ON pi.id = latest.max_id
+                    WHERE pi.company_id = :comp_id2
+                ) latest_p ON i.id = latest_p.item_id
+                SET i.purchase_rate = latest_p.rate
+                WHERE i.company_id = :comp_id3 
+                  AND (i.purchase_rate IS NULL OR i.purchase_rate <= 0)";
+        
+        $db->execute($sql, [
+            'comp_id1' => $companyId,
+            'comp_id2' => $companyId,
+            'comp_id3' => $companyId
+        ]);
+
+        // Also backfill opening stock movements that had 0 rate if item now has a purchase rate
+        $sqlOpening = "UPDATE `stock_movements` sm
+                       JOIN `items` i ON sm.item_id = i.id
+                       SET sm.rate = i.purchase_rate, sm.total_value = ROUND(sm.qty_in * i.purchase_rate, 2)
+                       WHERE sm.company_id = :comp_id
+                         AND sm.transaction_type = 'opening'
+                         AND (sm.rate IS NULL OR sm.rate <= 0)
+                         AND i.purchase_rate > 0";
+        $db->execute($sqlOpening, ['comp_id' => $companyId]);
+    }
+
+    /**
+     * Calculate Total Stock Asset Value across all inventory items
+     * Uses Weighted Average Cost from actual purchase bills and inward movements,
+     * falling back to latest purchase bill rate and item master purchase rate.
+     */
+    public static function getTotalStockAssetValue(int $companyId): float
+    {
+        $db = Database::getInstance();
+
+        // 1. Ensure any missing item master rates are synced from existing purchase bills
+        self::syncItemPurchaseRatesFromBills($companyId);
+
+        // 2. Compute accurate stock valuation using actual purchase bill costs
+        $sql = "SELECT COALESCE(SUM(item_stock.current_stock * COALESCE(
+                    NULLIF(item_wac.cost_rate, 0),
+                    NULLIF(latest_pr.latest_rate, 0),
+                    NULLIF(i.purchase_rate, 0),
+                    0
+                )), 0)
+                FROM (
+                    SELECT sm.item_id, SUM(sm.qty_in - sm.qty_out) as current_stock
+                    FROM `stock_movements` sm
+                    WHERE sm.company_id = :comp_id AND sm.is_cancelled = 0
+                    GROUP BY sm.item_id
+                    HAVING current_stock > 0
+                ) item_stock
+                JOIN `items` i ON item_stock.item_id = i.id AND i.is_deleted = 0
+                LEFT JOIN (
+                    SELECT sm_in.item_id, 
+                           CASE WHEN SUM(sm_in.qty_in) > 0 THEN ROUND(SUM(sm_in.total_value) / SUM(sm_in.qty_in), 2) ELSE 0 END as cost_rate
+                    FROM `stock_movements` sm_in
+                    WHERE sm_in.company_id = :comp_id2 AND sm_in.qty_in > 0 AND sm_in.is_cancelled = 0
+                    GROUP BY sm_in.item_id
+                ) item_wac ON item_stock.item_id = item_wac.item_id
+                LEFT JOIN (
+                    SELECT pi.item_id, pi.rate as latest_rate
+                    FROM `purchase_items` pi
+                    JOIN (
+                        SELECT item_id, MAX(id) as max_pi_id
+                        FROM `purchase_items`
+                        WHERE company_id = :comp_id3
+                        GROUP BY item_id
+                    ) latest_pi ON pi.id = latest_pi.max_pi_id
+                ) latest_pr ON item_stock.item_id = latest_pr.item_id";
+
+        return (float)$db->fetchValue($sql, [
+            'comp_id' => $companyId,
+            'comp_id2' => $companyId,
+            'comp_id3' => $companyId
+        ]);
+    }
 }
