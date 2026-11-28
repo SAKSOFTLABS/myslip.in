@@ -111,7 +111,8 @@ class InvoicePrintController extends Controller
         $sale = $this->saleModel->getSaleWithItemsPublic($id);
         if (!$sale) {
             http_response_code(404);
-            die("Invoice not found or no longer active.");
+            \App\Core\View::renderError(404, "Invoice not found or no longer active.");
+            return;
         }
 
         $expectedToken = substr(hash('sha256', $sale['id'] . $sale['invoice_number'] . ($sale['created_at'] ?? 'myslip')), 0, 16);
@@ -119,7 +120,8 @@ class InvoicePrintController extends Controller
 
         if (!$providedToken || !hash_equals($expectedToken, $providedToken)) {
             http_response_code(403);
-            die("Invalid or expired invoice link.");
+            \App\Core\View::renderError(403, "Invalid security token or expired invoice link.");
+            return;
         }
 
         $companyId = (int)$sale['company_id'];
