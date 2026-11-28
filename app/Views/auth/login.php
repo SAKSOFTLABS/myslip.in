@@ -1,7 +1,7 @@
 <h4 class="fw-bold mb-3 text-center">Welcome Back</h4>
 <p class="text-muted small text-center mb-4">Sign in to manage your invoices, stock & accounts</p>
 
-<form action="<?= url('/login') ?>" method="POST">
+<form id="loginForm" action="<?= url('/login') ?>" method="POST">
     <?= csrf_field() ?>
 
     <div class="mb-3">
@@ -37,3 +37,22 @@
     Don't have a business account yet?
     <a href="<?= url('/register') ?>" class="fw-bold text-primary text-decoration-none">Start 30-Day Free Trial</a>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            sessionStorage.setItem('myslip_auto_fullscreen', '1');
+            sessionStorage.removeItem('myslip_fullscreen_disabled');
+            try {
+                const el = document.documentElement;
+                const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+                if (!document.fullscreenElement && rfs) {
+                    rfs.call(el).catch(function() {});
+                }
+            } catch(e) {}
+        });
+    }
+});
+</script>

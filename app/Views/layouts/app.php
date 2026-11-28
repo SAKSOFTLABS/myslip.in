@@ -67,5 +67,78 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 
+<?php if (!\App\Core\Session::isSuperAdmin()): ?>
+<script>
+(function() {
+    function requestFullscreen() {
+        if (sessionStorage.getItem('myslip_fullscreen_disabled') === '1') {
+            return;
+        }
+        if (!document.fullscreenElement) {
+            const el = document.documentElement;
+            const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (rfs) {
+                rfs.call(el).catch(function() {});
+            }
+        }
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            sessionStorage.removeItem('myslip_fullscreen_disabled');
+            const el = document.documentElement;
+            const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (rfs) {
+                rfs.call(el).catch(function() {});
+            }
+        } else {
+            sessionStorage.setItem('myslip_fullscreen_disabled', '1');
+            const efs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+            if (efs) {
+                efs.call(document).catch(function() {});
+            }
+        }
+    }
+
+    function updateIcon() {
+        const icon = document.getElementById('fsIcon');
+        if (icon) {
+            icon.className = document.fullscreenElement ? 'bi bi-fullscreen-exit text-primary' : 'bi bi-arrows-fullscreen';
+        }
+        const btn = document.getElementById('btnToggleFullscreen');
+        if (btn) {
+            btn.title = document.fullscreenElement ? 'Exit Fullscreen' : 'Enter Fullscreen (F11)';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attempt fullscreen on page load
+        requestFullscreen();
+
+        // Listen for user interactions to enter fullscreen if not yet active
+        function onUserGesture() {
+            if (!document.fullscreenElement && sessionStorage.getItem('myslip_fullscreen_disabled') !== '1') {
+                requestFullscreen();
+            }
+        }
+        document.addEventListener('click', onUserGesture, { passive: true });
+        document.addEventListener('keydown', onUserGesture, { passive: true });
+
+        const btn = document.getElementById('btnToggleFullscreen');
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFullscreen();
+            });
+        }
+    });
+
+    document.addEventListener('fullscreenchange', updateIcon);
+    document.addEventListener('webkitfullscreenchange', updateIcon);
+})();
+</script>
+<?php endif; ?>
+
 </body>
 </html>

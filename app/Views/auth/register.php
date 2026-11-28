@@ -82,6 +82,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('reg_confirm_password').focus();
                 return false;
             }
+            sessionStorage.setItem('myslip_auto_fullscreen', '1');
+            sessionStorage.removeItem('myslip_fullscreen_disabled');
+            try {
+                const el = document.documentElement;
+                const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+                if (!document.fullscreenElement && rfs) {
+                    rfs.call(el).catch(function() {});
+                }
+            } catch(err) {}
         });
     }
 });

@@ -52,6 +52,13 @@ $gstEnabled = \App\Core\Session::get('gst_enabled', true);
             <span class="kbd-shortcut d-none d-lg-inline ms-1">F2</span>
         </a>
 
+        <?php if (!\App\Core\Session::isSuperAdmin()): ?>
+        <!-- Fullscreen Toggle Button -->
+        <button type="button" class="btn btn-sm btn-light border d-flex align-items-center justify-content-center" id="btnToggleFullscreen" title="Toggle Fullscreen" style="width: 32px; height: 32px;">
+            <i class="bi bi-arrows-fullscreen" id="fsIcon"></i>
+        </button>
+        <?php endif; ?>
+
         <!-- User Profile Dropdown -->
         <div class="dropdown">
             <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
