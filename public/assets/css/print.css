@@ -60,13 +60,13 @@
         overflow: visible !important;
     }
 
-    /* Standard A4 Page Setup with Zero Margin (exact A4 printable canvas) */
+    /* Standard A4 Page Setup (8mm margin: exact full paper fit on all printers) */
     @page {
         size: A4 portrait;
-        margin: 0;
+        margin: 8mm;
     }
 
-    /* All A4 Invoices: Exact physical A4 dimensions (210mm x 297mm) with crisp internal padding */
+    /* All A4 Invoices: Exact physical A4 Paper Fit (full printable width & 280mm printable height) */
     .invoice-a4-box,
     .invoice-classic-gst,
     .invoice-a4-fullheight,
@@ -76,18 +76,22 @@
     .invoice-modern-blue,
     .invoice-wholesale-grid,
     .print-container {
-        width: 210mm !important;
-        max-width: 210mm !important;
-        min-width: 210mm !important;
-        min-height: 297mm !important;
-        height: 297mm !important;
-        margin: 0 auto !important;
-        padding: 10mm 12mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 280mm !important;
+        min-height: 280mm !important;
+        max-height: 280mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
         box-sizing: border-box !important;
         background: #ffffff !important;
         box-shadow: none !important;
         border: none !important;
         transform: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
         page-break-after: avoid !important;
         page-break-inside: avoid !important;
     }
@@ -178,6 +182,7 @@
         flex-grow: 1 !important;
         display: flex !important;
         flex-direction: column !important;
+        min-height: 120mm !important;
     }
 
     .classic-gst-table,
@@ -199,6 +204,7 @@
     .classic-bottom-section,
     .a4-bottom-section {
         flex-shrink: 0 !important;
+        margin-top: auto !important;
         page-break-inside: avoid !important;
     }
 }

@@ -78,6 +78,7 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=120x120&
 
 .invoice-a4-fullheight .a4-bottom-section {
     flex-shrink: 0;
+    margin-top: auto !important;
 }
 
 .invoice-a4-fullheight .border-black {
@@ -87,24 +88,42 @@ $qrUrl = $upiString ? "https://api.qrserver.com/v1/create-qr-code/?size=120x120&
 @media print {
     @page {
         size: A4 portrait;
-        margin: 0;
+        margin: 8mm;
     }
     .invoice-a4-fullheight {
-        min-height: 297mm !important;
-        height: 297mm !important;
-        width: 210mm !important;
-        max-width: 210mm !important;
-        min-width: 210mm !important;
-        padding: 10mm 12mm !important;
-        margin: 0 auto !important;
+        height: 280mm !important;
+        min-height: 280mm !important;
+        max-height: 280mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
         box-shadow: none !important;
         border: none !important;
         box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
         page-break-after: avoid !important;
         page-break-inside: avoid !important;
     }
+    .a4-table-wrapper {
+        flex-grow: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 120mm !important;
+    }
+    .a4-items-table {
+        height: 100% !important;
+        flex-grow: 1 !important;
+    }
+    .a4-items-table tbody tr.spacer-row td {
+        height: 100% !important;
+    }
     .a4-bottom-section {
         flex-shrink: 0 !important;
+        margin-top: auto !important;
         page-break-inside: avoid !important;
     }
     .no-print {

@@ -7,8 +7,109 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="<?= asset('css/print.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/print.css') ?>?v=<?= time() ?>" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+    @media print {
+        /* Force perfect Paper Fit for A4 / A5 / Thermal */
+        @page {
+            size: <?= (!empty($format) && $format === 'thermal') ? 'auto' : ((!empty($format) && strtolower($format) === 'a5') ? 'A5 portrait' : 'A4 portrait') ?>;
+            margin: <?= (!empty($format) && $format === 'thermal') ? '0' : '8mm' ?>;
+        }
+
+        html,
+        body,
+        body.print-preview-body {
+            min-width: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: 'Segoe UI', Arial, sans-serif !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            overflow: visible !important;
+        }
+
+        .print-preview-wrapper,
+        .invoice-scaler-container,
+        .invoice-box-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            display: block !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+
+        /* 100% Paper Fit: full printable width & full printable height (280mm) with zero void at bottom */
+        .invoice-a4-box,
+        .invoice-classic-gst,
+        .invoice-a4-fullheight,
+        .invoice-creative-emerald,
+        .invoice-executive-gold,
+        .invoice-minimal,
+        .invoice-modern-blue,
+        .invoice-wholesale-grid,
+        .print-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            height: 280mm !important;
+            min-height: 280mm !important;
+            max-height: 280mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+            box-shadow: none !important;
+            border: none !important;
+            transform: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
+        }
+
+        .classic-table-wrapper,
+        .a4-table-wrapper {
+            flex-grow: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 120mm !important;
+        }
+
+        .classic-gst-table,
+        .a4-items-table {
+            height: 100% !important;
+            flex-grow: 1 !important;
+        }
+
+        .classic-gst-table tbody tr.spacer-row td,
+        .a4-items-table tbody tr.spacer-row td {
+            height: 100% !important;
+            border-top: none !important;
+            border-bottom: 1.5px solid #000000 !important;
+            border-left: 1px solid #000000 !important;
+            border-right: 1px solid #000000 !important;
+            padding: 0 !important;
+        }
+
+        .classic-bottom-section,
+        .a4-bottom-section {
+            flex-shrink: 0 !important;
+            margin-top: auto !important;
+            page-break-inside: avoid !important;
+        }
+    }
+    </style>
 </head>
 <body class="print-preview-body">
 
